@@ -11,13 +11,13 @@ app.use( express.static( __dirname + '/public' ) );
 app.use(bodyParser.json());
 
 
-app.post('/getDefaultSchema',function(req,res){
+app.get('/getDefaultSchema',function(req,res){
     let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
     res.send(schemaFile)
 
 });
 
-app.post('/getProjectNames',function(req,res){
+app.get('/getProjectNames',function(req,res){
     getProjectNames().then((value)=> {
         res.send(value)
     });

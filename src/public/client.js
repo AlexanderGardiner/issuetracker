@@ -1,11 +1,23 @@
 fetch("/getProjectNames", {
-    method: 'POST',
+    method: 'GET',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
       'access-control-allow-origin': '*'
-    },
-    body: JSON.stringify({ "query": "requestlevel"})
-  })
+    }
+    })
     .then(response => response.json())
-    .then(data => console.log(data));
+    .then(data => displayProjectNames(data));
+
+function displayProjectNames(projectNames) {
+    projectButtons = [];
+    for (let i=0;i<projectNames.length;i++) {
+        projectButtons.push(document.createElement("button"));
+        projectButtons[i].innerHTML = projectNames[i];
+        projectButtons[i].classList.add("projectButton");
+        document.body.appendChild(projectButtons[i]);
+        
+    }
+}
+
+
