@@ -14,10 +14,10 @@ app.listen(PORT, function(err){
     console.log("Server listening on PORT", PORT);
 });
 
-function createNewProject(projectName) {
+async function createNewProject(projectName) {
     MongoClient.connect(url, function(err, db) {
         if (err) throw err;
-        var dbo = db.db("IssueTracker");
+        let dbo = db.db("IssueTracker");
         dbo.createCollection(projectName, function(err, res) {
           if (err) throw err;
           console.log("Project Created");
@@ -26,10 +26,12 @@ function createNewProject(projectName) {
     }); 
 }
 
-function createNewIssue(projectName,issueData) {
-    MongoClient.connect(url, function(err, db) {
+async function createNewIssue(projectName,issueData) {
+    MongoClient.connect(url, async function(err, db) {
         if (err) throw err;
-        var dbo = db.db("IssueTracker");
+        let dbo = db.db("IssueTracker");
+        let id = await dbo.collection(projectName).countDocuments();
+        issueData.id = id.toString();
         dbo.collection(projectName).insertOne(issueData, function(err, res) {
           if (err) throw err;
           console.log("Issue Created");
@@ -37,5 +39,18 @@ function createNewIssue(projectName,issueData) {
         });
     }); 
 }
-createNewProject("Project2");
-createNewIssue("Project2",{"test":"test1"})
+
+async function editIssue(projectName,propertyID,propertyName,propertyData) {
+    MongoClient.connect(url, function(err, db) {
+        if (err) throw err;
+        let dbo = db.db("IssueTracker");
+        dbo.collection(projectName).updateOne({id:propertyID},{ $set: { [propertyName]: propertyData } }, function(err, res) {
+          if (err) throw err;
+          console.log("Issue Edited");
+          db.close();
+        });
+    }); 
+}
+//createNewProject("Project2");
+createNewIssue("Project2",{"title":"Is a bug","status":"started"})
+editIssue("Project2","1","status","done")
