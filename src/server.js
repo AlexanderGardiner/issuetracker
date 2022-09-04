@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const bodyParser = require('body-parser')
 const MongoClient = require('mongodb').MongoClient;
+const fs = require('fs');
 var url = "mongodb://localhost:27017/IssueTracker";
 const PORT = 8080;
 var MongoDatabase;
@@ -48,12 +49,29 @@ async function editIssue(projectName,propertyID,propertyName,propertyData) {
     });
 }
 
+function setSchema(projectName, schema) {
+    console.log("Setting Schema")
+    if (projectName!="Default") {
+        let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
+        schemaFile[projectName] = schema;
+        console.log(schemaFile);
+        fs.writeFileSync("schema.json",JSON.stringify(schemaFile))
+    } else {
+        console.log("Project name invalid, please choose a different name")
+    }
+    
+    
+}
+
 async function main() {
+    setSchema("Default",{"test":"test1"})
     await startupDatabase();
-    //createNewProject("Project2");
+    await createNewProject("Project2");
     await createNewIssue("Project2",{"title":"Is a bug","status":"started"})
     await editIssue("Project2","2","status","done")
 }
+
+
 main();
 
 
