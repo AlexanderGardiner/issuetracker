@@ -1,1 +1,1 @@
-{"Default":{"Title":{"type":"text"},"Time Edited":{"type":"time"},"Status":{"type":"multichoice","options":[]},"Creator":{"type":"user"}}}
+{"Default":{"Title":{"type":"text"},"Time Edited":{"type":"time"},"Status":{"type":"multichoice","options":[]},"Reporter":{"type":"user"}}}
