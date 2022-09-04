@@ -15,9 +15,15 @@ function displayProjectNames(projectNames) {
         projectButtons.push(document.createElement("button"));
         projectButtons[i].innerHTML = projectNames[i];
         projectButtons[i].classList.add("projectButton");
+        projectButtons[i].onclick = function() { loadProject(projectNames[i])};
         document.body.appendChild(projectButtons[i]);
         
     }
+}
+
+function loadProject(projectName) {
+    console.log(projectName);
+    //load project here
 }
 
 
