@@ -23,7 +23,7 @@ function displayProjectNames(projectNames) {
 
 function loadProject(projectName) {
     console.log(projectName);
-    //load project here
+    //to do load project here 
 }
 
 
