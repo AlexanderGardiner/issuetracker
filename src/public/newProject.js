@@ -44,13 +44,17 @@ function displaySchema(schema) {
         propertyTypes[i].appendChild(propertyTypesSelect[i]);
         
         propertyMultipleChoices.push(properties[i].insertCell(2))
+        propertyMultipleChoices[i].classList.add("multipleChoices")
         propertyMultipleChoicesInput.push(document.createElement("Input"));
         propertyMultipleChoicesInput[i].setAttribute("type", "text");
         
         propertyMultipleChoicesInput[i].classList.add("tableinput");
         if (schema.Default[keys[i]].type=="Multiple Choice") {
-            console.log('test')
-            propertyMultipleChoicesInput[i].setAttribute("value", JSON.stringify(schema.Default[keys[i]].options).slice(1, -1));
+            let optionsOutput = []
+            for (let j=0; j<schema.Default[keys[i]].options.length;j++) {
+                optionsOutput.push(schema.Default[keys[i]].options[j]);
+            }
+            propertyMultipleChoicesInput[i].setAttribute("value", optionsOutput);
         }
         propertyMultipleChoices[i].appendChild(propertyMultipleChoicesInput[i]);
     }
@@ -58,6 +62,44 @@ function displaySchema(schema) {
     
 }
 
-function addNewProperty() {
+function addProperty() {
+    let properties;
+    let propertyNames;
+    let propertyNamesInput;
+    let propertyTypes;
+    let propertyTypesSelect;
+    let propertyMultipleChoices;
+    let propertyMultipleChoicesInput;
+    let options = ["Text","Time","Multiple Choice","User"]
+    properties = (table.insertRow(-1));
+    propertyNames =(properties.insertCell(0))
+    propertyNamesInput = (document.createElement("Input"));
+    propertyNamesInput.setAttribute("type", "text");
+    propertyNamesInput.setAttribute("value", "");
+    propertyNamesInput.classList.add("tableinput");
+    propertyNames.appendChild(propertyNamesInput);
 
+    propertyTypes = (properties.insertCell(1));
+    propertyTypesSelect = (document.createElement("Select"));
+    for (var j = 0; j < options.length; j++) {
+        var option = document.createElement("option");
+        option.value = options[j];
+        option.text = options[j];
+        propertyTypesSelect.appendChild(option);
+    }
+    propertyTypesSelect.selectedIndex = 0;
+    propertyTypesSelect.classList.add("tableinput");
+    propertyTypes.appendChild(propertyTypesSelect);
+    
+    propertyMultipleChoices = (properties.insertCell(2))
+    propertyMultipleChoices.classList.add("multipleChoices")
+    propertyMultipleChoicesInput = (document.createElement("Input"));
+    propertyMultipleChoicesInput.setAttribute("type", "text");
+    propertyMultipleChoicesInput.classList.add("tableinput");
+    propertyMultipleChoicesInput.setAttribute("value", "");
+    propertyMultipleChoices.appendChild(propertyMultipleChoicesInput);
+}
+
+function removeProperty() {
+    table.deleteRow(-1);
 }

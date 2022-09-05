@@ -30,13 +30,16 @@ td,th,tr {
     width: auto;
 }
 
-/*need to fix right table column being cut off*/
 .tableinput {
     margin: 5px;
     padding: 5px 5px;
     font-size: 20px;
     width:90%;
-    height:90%;
+    height:auto;
     border: none;
 
+}
+
+.multipleChoices {
+    width: 500px;
 }
