@@ -30,6 +30,14 @@ app.post('/createNewProject',function(req,res){
     res.send("Recieved")
 });
 
+app.post('/getProject',async function(req,res){
+    let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'))
+    let schema = schemaFile[req.body.projectName];
+    let project = await getProject(req.body.projectName)
+    res.send(JSON.stringify({"project":project,"schema":schema}))
+    
+});
+
 app.listen(PORT, function(err){
     if (err) console.log(err);
     console.log("Server listening on PORT", PORT);
@@ -46,6 +54,12 @@ async function getProjectNames() {
         collectionNames.push(collections[i].name)
     }
     return collectionNames;
+}
+
+async function getProject(projectName) {
+    let project = await MongoDatabase.db("IssueTracker").collection(projectName).find().toArray();
+    let schema = JSON.parse(fs.readFileSync("schema.json", 'utf8'))[projectName];
+    return project
 }
 async function createNewProject(projectName) {
     console.log("Creating New Project");
