@@ -24,6 +24,12 @@ app.get('/getProjectNames',function(req,res){
     
 });
 
+app.post('/createNewProject',function(req,res){
+    createNewProject(req.body.projectName);
+    setSchema(req.body.projectName,req.body.schema);
+    res.send("Recieved")
+});
+
 app.listen(PORT, function(err){
     if (err) console.log(err);
     console.log("Server listening on PORT", PORT);

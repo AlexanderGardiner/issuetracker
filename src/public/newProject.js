@@ -104,6 +104,39 @@ function removeProperty() {
     table.deleteRow(-1);
 }
 
+
+
 function createProject() {
-    //create project here
+    let projectName = document.getElementById("titleInput").value;
+    let schema = {};
+    
+    for (var i = 0, row; row = table.rows[i]; i++) {
+        let rowData = row.cells;
+        if (rowData[0].children.length>0) {
+            schema[rowData[0].children[0].value] = {"type":"text"};
+            schema[rowData[0].children[0].value].type = rowData[1].children[0].value;
+            if (rowData[1].children[0].value=="Multiple Choice") {
+                console.log("test")
+                let options = rowData[2].children[0].value.split(",");
+                schema[rowData[0].children[0].value].options = options;
+            }
+            
+        }
+            
+    }
+    console.log(JSON.stringify(schema))
+    
+
+    fetch("/createNewProject", {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'access-control-allow-origin': '*'
+        },
+        body: JSON.stringify({"projectName":projectName,"schema":schema})
+        })
+        .then(response => response.json())
+        .then(data => console.log(data));
+        
 }
