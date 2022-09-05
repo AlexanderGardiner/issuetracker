@@ -31,6 +31,7 @@ app.post('/createNewProject',function(req,res){
 });
 
 app.post('/getProject',async function(req,res){
+    console.log("Getting Project: "+req.body.projectName);
     let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'))
     let schema = schemaFile[req.body.projectName];
     let project = await getProject(req.body.projectName)
