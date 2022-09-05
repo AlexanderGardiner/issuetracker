@@ -7,16 +7,20 @@
     <link href="style.css" rel="stylesheet" type="text/css" />
   </head>
   <body>
-    <h1 id="title">New Project</h1>
+    <div id="title">
+      <input id="titleInput" type="text" value="New Project"></input>
+    </div>
     <table id="propertySelectorTable">
         <tr>
             <th>Name of property</th>
             <th>Type of property</th>
             <th>Choices (If applicable)</th>
         </tr>
-        <button onclick="addProperty()">Add property</button>
-        <button onclick="removeProperty()">Remove property</button>
+        
       </table>
+      <button class="propertyButton" onclick="addProperty()">Add property</button>
+      <button class="propertyButton" onclick="removeProperty()">Remove property</button>
+      <button class="propertyButton" onclick="createProject()">createProject</button>
     <script src="newProject.js"></script>
   </body>
 </html>

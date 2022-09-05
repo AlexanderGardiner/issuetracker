@@ -103,3 +103,7 @@ function addProperty() {
 function removeProperty() {
     table.deleteRow(-1);
 }
+
+function createProject() {
+    //create project here
+}
