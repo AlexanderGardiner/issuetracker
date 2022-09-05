@@ -13,3 +13,30 @@
     text-decoration: none;
     font-size: 20px;
 }    
+
+#propertySelectorTable {
+    
+    margin-left: auto;
+    margin-right: auto;
+}
+
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+td,th,tr {
+    padding: 0px;
+    width: auto;
+}
+
+/*need to fix right table column being cut off*/
+.tableinput {
+    margin: 5px;
+    padding: 5px 5px;
+    font-size: 20px;
+    width:90%;
+    height:90%;
+    border: none;
+
+}

@@ -26,4 +26,7 @@ function loadProject(projectName) {
     //to do load project here 
 }
 
+function createNewProject() {
+    window.location.href = "/newProject.html";
+}
 
