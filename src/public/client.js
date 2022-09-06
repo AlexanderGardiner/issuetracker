@@ -1,3 +1,4 @@
+// Get project names and send them to load function
 fetch("/getProjectNames", {
     method: 'GET',
     headers: {
@@ -9,8 +10,12 @@ fetch("/getProjectNames", {
     .then(response => response.json())
     .then(data => displayProjectNames(data));
 
+// Display projects as buttons
 function displayProjectNames(projectNames) {
+    // Array to access created buttons
     projectButtons = [];
+
+    // Create buttons
     for (let i=0;i<projectNames.length;i++) {
         projectButtons.push(document.createElement("button"));
         projectButtons[i].innerHTML = projectNames[i];
@@ -21,11 +26,13 @@ function displayProjectNames(projectNames) {
     }
 }
 
+// Load selected project
 function loadProject(projectName) {
     console.log(projectName);
     //to do load project here 
 }
 
+// Set page location to create project
 function createNewProject() {
     window.location.href = "/newProject.html";
 }

@@ -1,3 +1,4 @@
+// Get the default schema and send it to be displayed
 fetch("/getDefaultSchema", {
     method: 'GET',
     headers: {
@@ -9,8 +10,12 @@ fetch("/getDefaultSchema", {
     .then(response => response.json())
     .then(data => displaySchema(data));
 
+// Get table from html
 let table = document.getElementById("propertySelectorTable");
+
+// Display schema in editable table using inputs
 function displaySchema(schema) {
+    // Lists to access created elements
     let properties = [];
     let propertyNames = [];
     let propertyNamesInput = [];
@@ -18,9 +23,13 @@ function displaySchema(schema) {
     let propertyTypesSelect = [];
     let propertyMultipleChoices = [];
     let propertyMultipleChoicesInput = [];
+
     let options = ["Text","Time","Multiple Choice","User"]
     let keys = Object.keys(schema.Default)
+
+    // Create elements of table and create inputs of specific type for each column
     for (let i=0;i<keys.length;i++) {
+        // Column 1 creation
         properties.push(table.insertRow(-1));
         propertyNames.push(properties[i].insertCell(0))
         propertyNamesInput.push(document.createElement("Input"));
@@ -29,6 +38,7 @@ function displaySchema(schema) {
         propertyNamesInput[i].classList.add("tableinput");
         propertyNames[i].appendChild(propertyNamesInput[i]);
 
+        // Column 2 creation
         propertyTypes.push(properties[i].insertCell(1));
         propertyTypesSelect.push(document.createElement("Select"));
         for (var j = 0; j < options.length; j++) {
@@ -43,6 +53,7 @@ function displaySchema(schema) {
         propertyTypesSelect[i].classList.add("tableinput");
         propertyTypes[i].appendChild(propertyTypesSelect[i]);
         
+        // Column 3 creation
         propertyMultipleChoices.push(properties[i].insertCell(2))
         propertyMultipleChoices[i].classList.add("multipleChoices")
         propertyMultipleChoicesInput.push(document.createElement("Input"));
@@ -62,7 +73,9 @@ function displaySchema(schema) {
     
 }
 
+// Add property to table
 function addProperty() {
+    // Vars to access created elements
     let properties;
     let propertyNames;
     let propertyNamesInput;
@@ -71,6 +84,8 @@ function addProperty() {
     let propertyMultipleChoices;
     let propertyMultipleChoicesInput;
     let options = ["Text","Time","Multiple Choice","User"]
+
+    // Column 1
     properties = (table.insertRow(-1));
     propertyNames =(properties.insertCell(0))
     propertyNamesInput = (document.createElement("Input"));
@@ -79,6 +94,7 @@ function addProperty() {
     propertyNamesInput.classList.add("tableinput");
     propertyNames.appendChild(propertyNamesInput);
 
+    // Column 2
     propertyTypes = (properties.insertCell(1));
     propertyTypesSelect = (document.createElement("Select"));
     for (var j = 0; j < options.length; j++) {
@@ -91,6 +107,7 @@ function addProperty() {
     propertyTypesSelect.classList.add("tableinput");
     propertyTypes.appendChild(propertyTypesSelect);
     
+    // Column 3
     propertyMultipleChoices = (properties.insertCell(2))
     propertyMultipleChoices.classList.add("multipleChoices")
     propertyMultipleChoicesInput = (document.createElement("Input"));
@@ -100,12 +117,13 @@ function addProperty() {
     propertyMultipleChoices.appendChild(propertyMultipleChoicesInput);
 }
 
+// Remove last property from table
 function removeProperty() {
     table.deleteRow(-1);
 }
 
 
-
+// Submit project to server to be created
 function createProject() {
     let projectName = document.getElementById("titleInput").value;
     let schema = {};
@@ -126,7 +144,7 @@ function createProject() {
     }
     console.log(JSON.stringify(schema))
     
-
+    // Send new project to server
     fetch("/createNewProject", {
         method: 'POST',
         headers: {
