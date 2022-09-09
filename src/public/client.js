@@ -28,7 +28,7 @@ function displayProjectNames(projectNames) {
 
 // Load selected project
 function loadProject(projectName) {
-    console.log(projectName);
+    window.location.href = "/project.html?projectName=" + projectName;
     //to do load project here 
 }
 

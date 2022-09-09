@@ -21,9 +21,9 @@ let table = document.getElementById("propertyTable");
 
 // Display project in editable table
 function displayProject(data) {
-
   
-  //TODO: need to add header for table (schema)
+  document.getElementById("title").innerHTML = projectName;
+  
   let properties = [];
 
   let header;
@@ -67,6 +67,10 @@ function displayProject(data) {
       propertiesInRow.push(properties[i].insertCell(j));
       propertiesInRowInput.push(document.createElement("Input"));
       propertiesInRowInput[j].setAttribute("type", "text");
+      if (j==0) {
+        propertiesInRowInput[j].setAttribute("readonly", "true");
+      }
+      
       propertiesInRowInput[j].setAttribute("value", JSON.stringify(data.project[i][projectKeys[j]]).replaceAll('"', ''));
       propertiesInRowInput[j].classList.add("tableinput");
 
@@ -76,5 +80,10 @@ function displayProject(data) {
   }
   // TODO: need to set up other input types for issues (multiple choice etc)
 
-  
+  let tdElements = document.getElementsByTagName("td");
+
+  for(let i = 0; i < tdElements.length; i++) {
+    console.log(tdElements[i])
+    tdElements[i].style.width = "500px"//(window.innerWidth/tdElements.length - 10).toString() + "px";
+  }
 }
