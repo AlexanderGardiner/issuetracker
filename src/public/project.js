@@ -22,10 +22,38 @@ let table = document.getElementById("propertyTable");
 // Display project in editable table
 function displayProject(data) {
 
-
+  
   //TODO: need to add header for table (schema)
-
   let properties = [];
+
+  let header;
+  let schemaKeys = Object.keys(data.schema)
+  let headerRow = [];
+  let headerRowInputs = [];
+
+  header = (table.insertRow(-1));
+
+  headerRow.push(header.insertCell(0));
+  headerRowInputs.push(document.createElement("Input"));
+  headerRowInputs[0].setAttribute("type", "text");
+  headerRowInputs[0].setAttribute("value", "ID");
+  headerRowInputs[0].classList.add("tableinput");
+
+  headerRow[0].appendChild(headerRowInputs[0])
+
+  for (let i=1;i<schemaKeys.length+1;i++) {
+    
+    headerRow.push(header.insertCell(i));
+    headerRowInputs.push(document.createElement("Input"));
+    headerRowInputs[i].setAttribute("type", "text");
+    headerRowInputs[i].setAttribute("value", JSON.stringify(schemaKeys[i-1]).replaceAll('"', ''));
+    headerRowInputs[i].classList.add("tableinput");
+
+    headerRow[i].appendChild(headerRowInputs[i])
+
+  }
+
+  
   
   for (let i=0;i<data.project.length;i++) {
     let projectKeys = Object.keys(data.project[i]);
@@ -41,7 +69,7 @@ function displayProject(data) {
       propertiesInRow.push(properties[i].insertCell(j));
       propertiesInRowInput.push(document.createElement("Input"));
       propertiesInRowInput[j].setAttribute("type", "text");
-      propertiesInRowInput[j].setAttribute("value", JSON.stringify(data.project[i][projectKeys[j]]));
+      propertiesInRowInput[j].setAttribute("value", JSON.stringify(data.project[i][projectKeys[j]]).replaceAll('"', ''));
       propertiesInRowInput[j].classList.add("tableinput");
 
       propertiesInRow[j].appendChild(propertiesInRowInput[j])
