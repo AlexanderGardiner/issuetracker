@@ -34,9 +34,8 @@ function displayProject(data) {
   header = (table.insertRow(-1));
 
   headerRow.push(header.insertCell(0));
-  headerRowInputs.push(document.createElement("Input"));
-  headerRowInputs[0].setAttribute("type", "text");
-  headerRowInputs[0].setAttribute("value", "ID");
+  headerRowInputs.push(document.createElement("h1"));
+  headerRowInputs[0].innerHTML =  "ID";
   headerRowInputs[0].classList.add("tableinput");
 
   headerRow[0].appendChild(headerRowInputs[0])
@@ -44,9 +43,8 @@ function displayProject(data) {
   for (let i=1;i<schemaKeys.length+1;i++) {
     
     headerRow.push(header.insertCell(i));
-    headerRowInputs.push(document.createElement("Input"));
-    headerRowInputs[i].setAttribute("type", "text");
-    headerRowInputs[i].setAttribute("value", JSON.stringify(schemaKeys[i-1]).replaceAll('"', ''));
+    headerRowInputs.push(document.createElement("h1"));
+    headerRowInputs[i].innerHTML = JSON.stringify(schemaKeys[i-1]).replaceAll('"', '');
     headerRowInputs[i].classList.add("tableinput");
 
     headerRow[i].appendChild(headerRowInputs[i])
