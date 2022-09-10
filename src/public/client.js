@@ -36,3 +36,4 @@ function createNewProject() {
     window.location.href = "/newProject.html";
 }
 
+

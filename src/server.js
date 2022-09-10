@@ -29,8 +29,9 @@ app.get('/getDefaultSchema',function(req,res){
 
 // Get schema of project
 app.post('/getProjectSchema',function(req,res){
-    console.log("Getting Project Schema")
+    
     try {
+        console.log("Getting "+req.body.projectName+" Schema");
         let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
         res.send(schemaFile[req.body.projectName])
     } catch (err) {
@@ -67,8 +68,11 @@ app.post('/editProjectSchema',function(req,res){
                 }
             }
         }
-        setSchema(req.body.projectName,schema)
-    } catch {
+        if (schemaFile.hasOwnProperty(req.body.projectName)) {
+            setSchema(req.body.projectName,schema)
+        }
+        
+    } catch(err) {
         console.log(err);
         res.send ({"Error": err});
     }
@@ -89,8 +93,8 @@ app.post('/createNewProject',function(req,res){
         console.log("Creating New Project "+req.body.projectName);
         createNewProject(req.body.projectName);
         setSchema(req.body.projectName,req.body.schema);
-        res.send("Recieved")
-    } catch {
+        res.send("Creating New Project")
+    } catch(err) {
         console.log(err);
         res.send ({"Error": err});
     }
@@ -105,7 +109,7 @@ app.post('/getProject',async function(req,res){
         let schema = schemaFile[req.body.projectName];
         let project = await getProject(req.body.projectName);
         res.send(JSON.stringify({"project":project,"schema":schema}));
-    } catch {
+    } catch(err) {
         console.log(err);
         res.send ({"Error": err});
     }
@@ -136,7 +140,7 @@ app.post('/updateProject',async function(req,res){
                 
             }
         }
-    } catch {
+    } catch(err) {
         console.log(err);
         res.send ({"Error": err});
     }
