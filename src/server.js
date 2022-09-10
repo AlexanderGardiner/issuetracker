@@ -29,83 +29,118 @@ app.get('/getDefaultSchema',function(req,res){
 
 // Get schema of project
 app.post('/getProjectSchema',function(req,res){
-    console.log(req.body)
-    let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
-    res.send(schemaFile[req.body.projectName])
+    console.log("Getting Project Schema")
+    try {
+        let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
+        res.send(schemaFile[req.body.projectName])
+    } catch (err) {
+        console.log(err);
+        res.send ({"Error": err});
+    }
+    
 
 });
 
+// Edit schema of project (need to test for weird requests)
 app.post('/editProjectSchema',function(req,res){
-    res.send("Editing Schema");
-    let schema = {};
-    let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
-    let oldSchema = schemaFile[req.body.projectName]
-    let submittedSchema = req.body.schema;
-    let submittedSchemaKeys = Object.keys(submittedSchema);
-    for (let i=0;i<submittedSchemaKeys.length;i++) {
-        
-        if (submittedSchema[submittedSchemaKeys[i]].type!="Multiple Choice") {
-            schema[submittedSchemaKeys[i]] = submittedSchema[submittedSchemaKeys[i]];
-        } else {
-            schema[submittedSchemaKeys[i]] = {"type":"Multiple Choice"};
-            schema[submittedSchemaKeys[i]].options = oldSchema[submittedSchemaKeys[i]].options;
-            for (let j=0;j<submittedSchema[submittedSchemaKeys[i]].newOptions.length;j++) {
-                if (submittedSchema[submittedSchemaKeys[i]].newOptions[j]!="") {
-                    schema[submittedSchemaKeys[i]].options.push(submittedSchema[submittedSchemaKeys[i]].newOptions[j])
+    
+    try {
+        console.log("Editing "+req.body.projectName+" Schema")
+        res.send("Editing Schema");
+        let schema = {};
+        let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
+        let oldSchema = schemaFile[req.body.projectName]
+        let submittedSchema = req.body.schema;
+        let submittedSchemaKeys = Object.keys(submittedSchema);
+        for (let i=0;i<submittedSchemaKeys.length;i++) {
+            
+            if (submittedSchema[submittedSchemaKeys[i]].type!="Multiple Choice") {
+                schema[submittedSchemaKeys[i]] = submittedSchema[submittedSchemaKeys[i]];
+            } else {
+                schema[submittedSchemaKeys[i]] = {"type":"Multiple Choice"};
+                schema[submittedSchemaKeys[i]].options = oldSchema[submittedSchemaKeys[i]].options;
+                for (let j=0;j<submittedSchema[submittedSchemaKeys[i]].newOptions.length;j++) {
+                    if (submittedSchema[submittedSchemaKeys[i]].newOptions[j]!="") {
+                        schema[submittedSchemaKeys[i]].options.push(submittedSchema[submittedSchemaKeys[i]].newOptions[j])
+                    }
+                    
                 }
-                
             }
         }
+        setSchema(req.body.projectName,schema)
+    } catch {
+        console.log(err);
+        res.send ({"Error": err});
     }
-    setSchema(req.body.projectName,schema)
 });
 
 // Get list of project names
 app.get('/getProjectNames',function(req,res){
+    console.log("Getting Project Names");
     getProjectNames().then((value)=> {
         res.send(value)
     });
     
 });
 
-// Create new project in schema and in database
+// Create new project in schema and in database (potential to break if custom request is run)
 app.post('/createNewProject',function(req,res){
-    createNewProject(req.body.projectName);
-    setSchema(req.body.projectName,req.body.schema);
-    res.send("Recieved")
+    try {
+        console.log("Creating New Project "+req.body.projectName);
+        createNewProject(req.body.projectName);
+        setSchema(req.body.projectName,req.body.schema);
+        res.send("Recieved")
+    } catch {
+        console.log(err);
+        res.send ({"Error": err});
+    }
+    
 });
 
 // Get project data from schema and from database
 app.post('/getProject',async function(req,res){
-    console.log("Getting Project: "+req.body.projectName);
-    let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'))
-    let schema = schemaFile[req.body.projectName];
-    let project = await getProject(req.body.projectName)
-    res.send(JSON.stringify({"project":project,"schema":schema}))
+    try {
+        console.log("Getting Project: "+req.body.projectName);
+        let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
+        let schema = schemaFile[req.body.projectName];
+        let project = await getProject(req.body.projectName);
+        res.send(JSON.stringify({"project":project,"schema":schema}));
+    } catch {
+        console.log(err);
+        res.send ({"Error": err});
+    }
+    
     
 });
 
+// Update project issues
 app.post('/updateProject',async function(req,res){
-    res.send("Updating Project")
-    console.log("Updating Project: "+JSON.stringify(req.body.projectName));
-    project = req.body.project;
-    for (let i=0; i<project.length;i++) {
-        
-        if (project[i].ID=="") {
-            // Send to database if new property
-            delete project[i].ID;
-            createNewIssue(req.body.projectName,project[i])
-        } else {
-            // Send to database if old property
-            let ID = project[i].ID;
-            delete project[i].ID;
-            let keys = Object.keys(project[i]);
-            for (let j=0;j<keys.length;j++) {
-                editProperty(req.body.projectName,ID,keys[j],project[i][keys[j]]);
-            }
+    try {
+        res.send("Updating Project")
+        console.log("Updating Project: "+JSON.stringify(req.body.projectName));
+        project = req.body.project;
+        for (let i=0; i<project.length;i++) {
             
+            if (project[i].ID=="") {
+                // Send to database if new property
+                delete project[i].ID;
+                createNewIssue(req.body.projectName,project[i])
+            } else {
+                // Send to database if old property
+                let ID = project[i].ID;
+                delete project[i].ID;
+                let keys = Object.keys(project[i]);
+                for (let j=0;j<keys.length;j++) {
+                    editProperty(req.body.projectName,ID,keys[j],project[i][keys[j]]);
+                }
+                
+            }
         }
+    } catch {
+        console.log(err);
+        res.send ({"Error": err});
     }
+    
 
     
 });
