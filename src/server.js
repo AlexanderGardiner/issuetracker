@@ -51,6 +51,14 @@ app.post('/getProject',async function(req,res){
     
 });
 
+app.post('/updateProject',async function(req,res){
+    console.log(JSON.stringify(req.body.project))
+    // TODO: Update project in server
+    console.log("Updating Project: "+JSON.stringify(req.body.projectName));
+
+    
+});
+
 // Set express server to listen
 app.listen(PORT, function(err){
     if (err) console.log(err);

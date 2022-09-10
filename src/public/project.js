@@ -18,15 +18,17 @@ fetch("/getProject", {
 
 // Get table from html
 let table = document.getElementById("propertyTable");
-
+let projectKeys;
+let schema;
+let schemaKeys;
 // Display project in editable table
 function displayProject(data) {
   
   document.getElementById("title").innerHTML = projectName;
   
   let properties = [];
-  let schemaKeys = Object.keys(data.schema)
-
+  schemaKeys = Object.keys(data.schema)
+  schema = data.schema;
   // Vars for headers
   let header;
   let headerRow = [];
@@ -56,7 +58,7 @@ function displayProject(data) {
   
   
   for (let i=0;i<data.project.length;i++) {
-    let projectKeys = Object.keys(data.project[i]);
+    projectKeys = Object.keys(data.project[i]);
 
     // Vars to access objects
     let propertiesInRow = [];
@@ -97,7 +99,6 @@ function displayProject(data) {
           let selectedIndex = 0;
           propertiesInRow.push(properties[i].insertCell(j));
           propertiesInRowInput.push(document.createElement("Select"));
-          propertiesInRowInput[j].setAttribute("value", JSON.stringify(data.project[i][projectKeys[j]]).replaceAll('"', ''));
           for (let k = 0; k < options.length; k++) {
             if (options[k]==data.project[i][projectKeys[j]]) {
               selectedIndex = k;
@@ -119,7 +120,7 @@ function displayProject(data) {
       }
       
       
-      //TODO: Add project submission/updation
+      
       
       // Add cells to correct class and add to table
       propertiesInRowInput[j].classList.add("tableinput");
@@ -136,5 +137,108 @@ function displayProject(data) {
   for(let i = 0; i < tdElements.length; i++) {
     tdElements[i].style.width = "1000px";
   }
+}
+
+function addIssue() {
+  let propertiesInRow = [];
+  let propertiesInRowInput = [];
+
+  let properties  = table.insertRow(-1);
+
+  // Create columns based on schema and populate with data
+  for (let j=0;j<projectKeys.length;j++) {
+    
+    
+    if (j==0) {
+      // Create ID cells
+      propertiesInRow.push(properties.insertCell(j));
+      propertiesInRowInput.push(document.createElement("Input"));
+      propertiesInRowInput[j].setAttribute("type", "text");
+      propertiesInRowInput[j].setAttribute("readonly", "true");
+      propertiesInRowInput[j].setAttribute("value", "");
+    } else {
+      // Create other types of cells
+      let typeOfCell = schema[schemaKeys[j-1]].type;
+      if (typeOfCell=="Text") {
+        // Create cell if it's type is text
+        propertiesInRow.push(properties.insertCell(j));
+        propertiesInRowInput.push(document.createElement("Input"));
+        propertiesInRowInput[j].setAttribute("type", "text");
+        propertiesInRowInput[j].setAttribute("value", "");
+      } else if (typeOfCell=="Time") {
+        // Create cell if it's type is time
+        propertiesInRow.push(properties.insertCell(j));
+        propertiesInRowInput.push(document.createElement("Input"));
+        propertiesInRowInput[j].setAttribute("type", "text");
+        propertiesInRowInput[j].setAttribute("readonly", "true");
+        propertiesInRowInput[j].setAttribute("value", Date.now());
+      } else if (typeOfCell=="Multiple Choice") {
+        // Create cell if it's type is multiple choice
+        let options = schema[schemaKeys[j-1]].options;
+        let selectedIndex = 0;
+        propertiesInRow.push(properties.insertCell(j));
+        propertiesInRowInput.push(document.createElement("Select"));
+        for (let k = 0; k < options.length; k++) {
+          let option = document.createElement("option");
+          option.value = options[k];
+          option.text = options[k];
+          propertiesInRowInput[j].appendChild(option);
+        }
+        propertiesInRowInput[j].selectedIndex = selectedIndex;
+      } else if (typeOfCell=="User") {
+        // Create cell if it's type is user
+        propertiesInRow.push(properties.insertCell(j));
+        propertiesInRowInput.push(document.createElement("Input"));
+        propertiesInRowInput[j].setAttribute("type", "text");
+        propertiesInRowInput[j].setAttribute("value", "");
+        // TODO: link to users when setup login system
+      }
+    }
+    
+    
+    
+    
+    // Add cells to correct class and add to table
+    propertiesInRowInput[j].classList.add("tableinput");
+
+    propertiesInRow[j].appendChild(propertiesInRowInput[j])
+  }
+}
+
+function removeIssue() {
+  table.deleteRow(-1);
+}
+function updateProject() {
+  //TODO: Add project submission/updation
+  let project = [];
+  // Get project data from HTML
+  for (let i = 0, row; row = table.rows[i]; i++) {
+      project.push({})
+      let rowData = row.cells;
+      for (let j=0; j<rowData.length; j++) {
+        if (j==0) {
+          project[i].ID = rowData[j].children[0].value;
+        } else {
+          project[i][schemaKeys[j-1]] = rowData[j].children[0].value;
+        }
+        
+      }
+      
+          
+  }
+  // Remove blank first column
+  project.shift();
+
+  // Send data to server
+  fetch("/updateProject", {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'access-control-allow-origin': '*'
+    },
+    body: JSON.stringify({"projectName":projectName,"project":project})
+    })
+
 }
 

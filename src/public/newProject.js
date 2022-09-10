@@ -128,7 +128,7 @@ function createProject() {
     let projectName = document.getElementById("titleInput").value;
     let schema = {};
     
-    for (var i = 0, row; row = table.rows[i]; i++) {
+    for (let i = 0, row; row = table.rows[i]; i++) {
         let rowData = row.cells;
         if (rowData[0].children.length>0) {
             schema[rowData[0].children[0].value] = {"type":"text"};
