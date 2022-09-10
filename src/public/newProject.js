@@ -12,7 +12,7 @@ fetch("/getDefaultSchema", {
 
 // Get table from html
 let table = document.getElementById("propertySelectorTable");
-
+let options = ["Text","Time","Multiple Choice","User"]
 // Display schema in editable table using inputs
 function displaySchema(schema) {
     // Lists to access created elements
@@ -24,7 +24,6 @@ function displaySchema(schema) {
     let propertyMultipleChoices = [];
     let propertyMultipleChoicesInput = [];
 
-    let options = ["Text","Time","Multiple Choice","User"]
     let keys = Object.keys(schema)
 
     // Create elements of table and create inputs of specific type for each column
@@ -88,7 +87,7 @@ function addProperty() {
     let propertyTypesSelect;
     let propertyMultipleChoices;
     let propertyMultipleChoicesInput;
-    let options = ["Text","Time","Multiple Choice","User"]
+    
 
     // Column 1
     properties = (table.insertRow(-1));
