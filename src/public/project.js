@@ -209,7 +209,6 @@ function removeIssue() {
   table.deleteRow(-1);
 }
 function updateProject() {
-  //TODO: Add project submission/updation
   let project = [];
   // Get project data from HTML
   for (let i = 0, row; row = table.rows[i]; i++) {
@@ -228,7 +227,7 @@ function updateProject() {
   }
   // Remove blank first column
   project.shift();
-
+  
   // Send data to server
   fetch("/updateProject", {
     method: 'POST',
@@ -238,7 +237,11 @@ function updateProject() {
       'access-control-allow-origin': '*'
     },
     body: JSON.stringify({"projectName":projectName,"project":project})
-    })
+    }).then(window.location.reload(true));
+
+    
 
 }
+
+
 

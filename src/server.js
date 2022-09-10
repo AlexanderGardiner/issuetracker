@@ -7,6 +7,7 @@ const express = require("express");
 const app = express();
 const bodyParser = require('body-parser')
 const MongoClient = require('mongodb').MongoClient;
+const ObjectId = require('mongodb').ObjectId;
 const fs = require('fs');
 
 // Vars for mongodb database
@@ -52,9 +53,25 @@ app.post('/getProject',async function(req,res){
 });
 
 app.post('/updateProject',async function(req,res){
-    console.log(JSON.stringify(req.body.project))
-    // TODO: Update project in server
+    project = req.body.project;
     console.log("Updating Project: "+JSON.stringify(req.body.projectName));
+    for (let i=0; i<project.length;i++) {
+        
+        if (project[i].ID=="") {
+            // Send to database if new property
+            delete project[i].ID;
+            createNewIssue(req.body.projectName,project[i])
+        } else {
+            // Send to database if old property
+            let ID = project[i].ID;
+            delete project[i].ID;
+            let keys = Object.keys(project[i]);
+            for (let j=0;j<keys.length;j++) {
+                editProperty(req.body.projectName,ID,keys[j],project[i][keys[j]]);
+            }
+            
+        }
+    }
 
     
 });
@@ -102,8 +119,7 @@ async function createNewProject(projectName) {
 async function createNewIssue(projectName,issueData) {
     console.log("Creating New Issue");    
     let dbo = MongoDatabase.db("IssueTracker");
-    let id = await dbo.collection(projectName).countDocuments();
-    issueData.id = id.toString();
+
     await dbo.collection(projectName).insertOne(issueData, function(err, res) {
         if (err) throw err;
     });
@@ -111,10 +127,10 @@ async function createNewIssue(projectName,issueData) {
 }
 
 // Edit issue in specific project
-async function editIssue(projectName,propertyID,propertyName,propertyData) {
-    console.log("Editing Issue");
+async function editProperty(projectName,propertyID,propertyName,propertyData) {
+    console.log("Editing Property "+propertyName+" from " + propertyID + " from "+projectName);
     let dbo = MongoDatabase.db("IssueTracker");
-    await dbo.collection(projectName).updateOne({id:propertyID},{ $set: { [propertyName]: propertyData } }, function(err, res) {
+    await dbo.collection(projectName).updateOne({_id:ObjectId(propertyID.toString())},{ $set: { [propertyName]: propertyData } }, function(err, res) {
         if (err) throw err;
     });
 }
@@ -136,12 +152,9 @@ function setSchema(projectName, schema) {
 
 // Function to run at startup
 async function main() {
-    //setSchema("Default",{"test":"test1"})
+
     await startupDatabase();
-    await getProjectNames();
-    //await createNewProject("Project2");
-    //await createNewIssue("Project2",{"title":"Is a bug","status":"started"})
-    //await editIssue("Project2","2","status","done")
+
 }
 
 
