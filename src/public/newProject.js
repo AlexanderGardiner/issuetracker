@@ -25,7 +25,7 @@ function displaySchema(schema) {
     let propertyMultipleChoicesInput = [];
 
     let options = ["Text","Time","Multiple Choice","User"]
-    let keys = Object.keys(schema.Default)
+    let keys = Object.keys(schema)
 
     // Create elements of table and create inputs of specific type for each column
     for (let i=0;i<keys.length;i++) {
@@ -46,7 +46,7 @@ function displaySchema(schema) {
             option.value = options[j];
             option.text = options[j];
             propertyTypesSelect[i].appendChild(option);
-            if (schema.Default[keys[i]].type==options[j]) {
+            if (schema[keys[i]].type==options[j]) {
                 propertyTypesSelect[i].selectedIndex = j;
             } 
         }
@@ -60,10 +60,10 @@ function displaySchema(schema) {
         propertyMultipleChoicesInput[i].setAttribute("type", "text");
         
         propertyMultipleChoicesInput[i].classList.add("tableinput");
-        if (schema.Default[keys[i]].type=="Multiple Choice") {
+        if (schema[keys[i]].type=="Multiple Choice") {
             let optionsOutput = []
-            for (let j=0; j<schema.Default[keys[i]].options.length;j++) {
-                optionsOutput.push(schema.Default[keys[i]].options[j]);
+            for (let j=0; j<schema[keys[i]].options.length;j++) {
+                optionsOutput.push(schema[keys[i]].options[j]);
             }
             propertyMultipleChoicesInput[i].setAttribute("value", optionsOutput);
         }

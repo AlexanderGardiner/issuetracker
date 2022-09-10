@@ -29,7 +29,6 @@ function displayProjectNames(projectNames) {
 // Load selected project
 function loadProject(projectName) {
     window.location.href = "/project.html?projectName=" + projectName;
-    //to do load project here 
 }
 
 // Set page location to create project

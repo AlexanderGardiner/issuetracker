@@ -23,7 +23,7 @@ app.use(bodyParser.json());
 // Get schema from file (need to only send schema for 1 project not all)
 app.get('/getDefaultSchema',function(req,res){
     let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
-    res.send(schemaFile)
+    res.send(schemaFile.Default)
 
 });
 
