@@ -6,12 +6,13 @@ const projectName = urlParams.get('projectName')
 
 // Get the default schema and send it to be displayed
 fetch("/getProjectSchema", {
-    method: 'GET',
+    method: 'POST',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
       'access-control-allow-origin': '*'
-    }
+    },
+    body: JSON.stringify({"projectName":projectName})
     })
     .then(response => response.json())
     .then(data => displaySchema(data));
@@ -32,7 +33,7 @@ function displaySchema(schema) {
     let propertyNewMultipleChoices = [];
     let propertyNewMultipleChoicesInput = [];
 
-    let keys = Object.keys(schema[projectName])
+    let keys = Object.keys(schema)
 
 
     // Create elements of table and create inputs of specific type for each column
@@ -51,7 +52,7 @@ function displaySchema(schema) {
         propertyTypes.push(properties[i].insertCell(1));
         propertyTypesInput.push(document.createElement("Input"));
         propertyTypesInput[i].setAttribute("type", "text");
-        propertyTypesInput[i].setAttribute("value", schema[projectName][keys[i]].type);
+        propertyTypesInput[i].setAttribute("value", schema[keys[i]].type);
         propertyTypesInput[i].setAttribute("readonly", "true");
         
         propertyTypesInput[i].classList.add("tableinput");
@@ -64,10 +65,10 @@ function displaySchema(schema) {
         propertyMultipleChoicesInput[i].setAttribute("type", "text");
         propertyMultipleChoicesInput[i].setAttribute("readonly", "true");
         propertyMultipleChoicesInput[i].classList.add("tableinput");
-        if (schema[projectName][keys[i]].type=="Multiple Choice") {
+        if (schema[keys[i]].type=="Multiple Choice") {
             let optionsOutput = []
-            for (let j=0; j<schema[projectName][keys[i]].options.length;j++) {
-                optionsOutput.push(schema[projectName][keys[i]].options[j]);
+            for (let j=0; j<schema[keys[i]].options.length;j++) {
+                optionsOutput.push(schema[keys[i]].options[j]);
             }
             propertyMultipleChoicesInput[i].setAttribute("value", optionsOutput);
         }

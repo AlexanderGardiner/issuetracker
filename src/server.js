@@ -20,17 +20,18 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use( express.static( __dirname + '/public' ) );
 app.use(bodyParser.json());
 
-// Get schema from file (need to only send schema for 1 project not all)
+// Get default schema
 app.get('/getDefaultSchema',function(req,res){
     let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
     res.send(schemaFile.Default)
 
 });
 
-// Get schema from file (need to only send schema for 1 project not all)
-app.get('/getProjectSchema',function(req,res){
+// Get schema of project
+app.post('/getProjectSchema',function(req,res){
+    console.log(req.body)
     let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
-    res.send(schemaFile)
+    res.send(schemaFile[req.body.projectName])
 
 });
 
