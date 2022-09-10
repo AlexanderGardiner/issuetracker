@@ -1,5 +1,11 @@
+// Get project to open from url
+const queryString = window.location.search;
+const urlParams = new URLSearchParams(queryString);
+const projectName = urlParams.get('projectName')
+
+
 // Get the default schema and send it to be displayed
-fetch("/getDefaultSchema", {
+fetch("/getProjectSchema", {
     method: 'GET',
     headers: {
       'Accept': 'application/json',
@@ -20,12 +26,14 @@ function displaySchema(schema) {
     let propertyNames = [];
     let propertyNamesInput = [];
     let propertyTypes = [];
-    let propertyTypesSelect = [];
+    let propertyTypesInput = [];
     let propertyMultipleChoices = [];
     let propertyMultipleChoicesInput = [];
+    let propertyNewMultipleChoices = [];
+    let propertyNewMultipleChoicesInput = [];
 
-    let options = ["Text","Time","Multiple Choice","User"]
-    let keys = Object.keys(schema.Default)
+    let keys = Object.keys(schema[projectName])
+
 
     // Create elements of table and create inputs of specific type for each column
     for (let i=0;i<keys.length;i++) {
@@ -34,40 +42,47 @@ function displaySchema(schema) {
         propertyNames.push(properties[i].insertCell(0))
         propertyNamesInput.push(document.createElement("Input"));
         propertyNamesInput[i].setAttribute("type", "text");
+        propertyNamesInput[i].setAttribute("readonly", "true");
         propertyNamesInput[i].setAttribute("value", keys[i]);
         propertyNamesInput[i].classList.add("tableinput");
         propertyNames[i].appendChild(propertyNamesInput[i]);
 
         // Column 2 creation
         propertyTypes.push(properties[i].insertCell(1));
-        propertyTypesSelect.push(document.createElement("Select"));
-        for (var j = 0; j < options.length; j++) {
-            var option = document.createElement("option");
-            option.value = options[j];
-            option.text = options[j];
-            propertyTypesSelect[i].appendChild(option);
-            if (schema.Default[keys[i]].type==options[j]) {
-                propertyTypesSelect[i].selectedIndex = j;
-            } 
-        }
-        propertyTypesSelect[i].classList.add("tableinput");
-        propertyTypes[i].appendChild(propertyTypesSelect[i]);
+        propertyTypesInput.push(document.createElement("Input"));
+        propertyTypesInput[i].setAttribute("type", "text");
+        propertyTypesInput[i].setAttribute("value", schema[projectName][keys[i]].type);
+        propertyTypesInput[i].setAttribute("readonly", "true");
+        
+        propertyTypesInput[i].classList.add("tableinput");
+        propertyTypes[i].appendChild(propertyTypesInput[i]);
         
         // Column 3 creation
         propertyMultipleChoices.push(properties[i].insertCell(2))
         propertyMultipleChoices[i].classList.add("multipleChoices")
         propertyMultipleChoicesInput.push(document.createElement("Input"));
         propertyMultipleChoicesInput[i].setAttribute("type", "text");
-        
+        propertyMultipleChoicesInput[i].setAttribute("readonly", "true");
         propertyMultipleChoicesInput[i].classList.add("tableinput");
-        if (schema.Default[keys[i]].type=="Multiple Choice") {
+        if (schema[projectName][keys[i]].type=="Multiple Choice") {
             let optionsOutput = []
-            for (let j=0; j<schema.Default[keys[i]].options.length;j++) {
-                optionsOutput.push(schema.Default[keys[i]].options[j]);
+            for (let j=0; j<schema[projectName][keys[i]].options.length;j++) {
+                optionsOutput.push(schema[projectName][keys[i]].options[j]);
             }
             propertyMultipleChoicesInput[i].setAttribute("value", optionsOutput);
         }
         propertyMultipleChoices[i].appendChild(propertyMultipleChoicesInput[i]);
+
+
+
+        // Column 4 creation
+        propertyNewMultipleChoices.push(properties[i].insertCell(3))
+        propertyNewMultipleChoices[i].classList.add("multipleChoices")
+        propertyNewMultipleChoicesInput.push(document.createElement("Input"));
+        propertyNewMultipleChoicesInput[i].setAttribute("type", "text");
+        propertyNewMultipleChoicesInput[i].classList.add("tableinput");
+        propertyNewMultipleChoicesInput[i].setAttribute("value", "");
+        propertyNewMultipleChoices[i].appendChild(propertyNewMultipleChoicesInput[i]);
     }
     
     // Set width of td to be size of page
@@ -85,9 +100,11 @@ function addProperty() {
     let propertyNames;
     let propertyNamesInput;
     let propertyTypes;
-    let propertyTypesSelect;
+    let propertyTypesInput;
     let propertyMultipleChoices;
     let propertyMultipleChoicesInput;
+    let propertyNewMultipleChoices = [];
+    let propertyNewMultipleChoicesInput = [];
     let options = ["Text","Time","Multiple Choice","User"]
 
     // Column 1
@@ -101,16 +118,16 @@ function addProperty() {
 
     // Column 2
     propertyTypes = (properties.insertCell(1));
-    propertyTypesSelect = (document.createElement("Select"));
+    propertyTypesInput = (document.createElement("Select"));
     for (var j = 0; j < options.length; j++) {
         var option = document.createElement("option");
         option.value = options[j];
         option.text = options[j];
-        propertyTypesSelect.appendChild(option);
+        propertyTypesInput.appendChild(option);
     }
-    propertyTypesSelect.selectedIndex = 0;
-    propertyTypesSelect.classList.add("tableinput");
-    propertyTypes.appendChild(propertyTypesSelect);
+    propertyTypesInput.selectedIndex = 0;
+    propertyTypesInput.classList.add("tableinput");
+    propertyTypes.appendChild(propertyTypesInput);
     
     // Column 3
     propertyMultipleChoices = (properties.insertCell(2))
@@ -120,8 +137,17 @@ function addProperty() {
     propertyMultipleChoicesInput.classList.add("tableinput");
     propertyMultipleChoicesInput.setAttribute("value", "");
     propertyMultipleChoices.appendChild(propertyMultipleChoicesInput);
-
     
+    // Column 4
+    propertyNewMultipleChoices = (properties.insertCell(2))
+    propertyNewMultipleChoices.classList.add("multipleChoices")
+    propertyNewMultipleChoicesInput = (document.createElement("Input"));
+    propertyNewMultipleChoicesInput.setAttribute("type", "text");
+    propertyNewMultipleChoicesInput.setAttribute("readonly", "true");
+    propertyNewMultipleChoicesInput.classList.add("tableinput");
+    propertyNewMultipleChoicesInput.setAttribute("value", "");
+    propertyNewMultipleChoices.appendChild(propertyNewMultipleChoicesInput);
+
 }
 
 // Remove last property from table
@@ -131,8 +157,7 @@ function removeProperty() {
 
 
 // Submit project to server to be created
-function createProject() {
-    let projectName = document.getElementById("titleInput").value;
+function updateSchema() {
     let schema = {};
     
     for (let i = 0, row; row = table.rows[i]; i++) {
@@ -142,16 +167,18 @@ function createProject() {
             schema[rowData[0].children[0].value].type = rowData[1].children[0].value;
             if (rowData[1].children[0].value=="Multiple Choice") {
                 let options = rowData[2].children[0].value.split(",");
+                let newOptions = rowData[3].children[0].value.split(",");
                 schema[rowData[0].children[0].value].options = options;
+                schema[rowData[0].children[0].value].newOptions = newOptions;
+
             }
             
         }
             
     }
-    console.log(JSON.stringify(schema))
     
     // Send new project to server
-    fetch("/createNewProject", {
+    fetch("/editProjectSchema", {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
@@ -160,7 +187,11 @@ function createProject() {
         },
         body: JSON.stringify({"projectName":projectName,"schema":schema})
         })
-        .then(response => response.json())
-        .then(data => console.log(data));
-        
+        .then(response => response.text())
+        .then(data => loadProjectPage(data));
+    
+}
+
+function loadProjectPage(data) {
+    window.location.href = "/project.html?projectName="+projectName
 }

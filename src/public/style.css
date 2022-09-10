@@ -29,14 +29,14 @@
     font-size: 20px;
 }
 #propertySelectorTable {
-    
+    width: 99vw;
     margin-left: auto;
     margin-right: auto;
     
 }
 
 #propertyTable {
-    
+    width: 99vw;
     margin-left: auto;
     margin-right: auto;
     margin-top: 10px;

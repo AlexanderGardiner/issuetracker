@@ -237,11 +237,19 @@ function updateProject() {
       'access-control-allow-origin': '*'
     },
     body: JSON.stringify({"projectName":projectName,"project":project})
-    }).then(window.location.reload(true));
+    }).then((response) => response.text())
+    .then((data) => reloadPage(data));
 
     
 
 }
 
+function reloadPage(data) {
+  window.location.reload(true)
+}
+
+function editSchema() {
+  window.location.href = "./editProjectSchema.html?projectName="+projectName;
+}
 
 

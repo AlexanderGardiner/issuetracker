@@ -27,6 +27,38 @@ app.get('/getDefaultSchema',function(req,res){
 
 });
 
+// Get schema from file (need to only send schema for 1 project not all)
+app.get('/getProjectSchema',function(req,res){
+    let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
+    res.send(schemaFile)
+
+});
+
+app.post('/editProjectSchema',function(req,res){
+    res.send("Editing Schema");
+    let schema = {};
+    let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
+    let oldSchema = schemaFile[req.body.projectName]
+    let submittedSchema = req.body.schema;
+    let submittedSchemaKeys = Object.keys(submittedSchema);
+    for (let i=0;i<submittedSchemaKeys.length;i++) {
+        
+        if (submittedSchema[submittedSchemaKeys[i]].type!="Multiple Choice") {
+            schema[submittedSchemaKeys[i]] = submittedSchema[submittedSchemaKeys[i]];
+        } else {
+            schema[submittedSchemaKeys[i]] = {"type":"Multiple Choice"};
+            schema[submittedSchemaKeys[i]].options = oldSchema[submittedSchemaKeys[i]].options;
+            for (let j=0;j<submittedSchema[submittedSchemaKeys[i]].newOptions.length;j++) {
+                if (submittedSchema[submittedSchemaKeys[i]].newOptions[j]!="") {
+                    schema[submittedSchemaKeys[i]].options.push(submittedSchema[submittedSchemaKeys[i]].newOptions[j])
+                }
+                
+            }
+        }
+    }
+    setSchema(req.body.projectName,schema)
+});
+
 // Get list of project names
 app.get('/getProjectNames',function(req,res){
     getProjectNames().then((value)=> {
@@ -53,8 +85,9 @@ app.post('/getProject',async function(req,res){
 });
 
 app.post('/updateProject',async function(req,res){
-    project = req.body.project;
+    res.send("Updating Project")
     console.log("Updating Project: "+JSON.stringify(req.body.projectName));
+    project = req.body.project;
     for (let i=0; i<project.length;i++) {
         
         if (project[i].ID=="") {
