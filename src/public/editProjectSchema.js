@@ -2,7 +2,7 @@
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 const projectName = urlParams.get('projectName')
-
+document.getElementById("titleInput").setAttribute("value",projectName);
 
 // Get the default schema and send it to be displayed
 fetch("/getProjectSchema", {
@@ -185,7 +185,7 @@ function updateSchema() {
           'Content-Type': 'application/json',
           'access-control-allow-origin': '*'
         },
-        body: JSON.stringify({"projectName":projectName,"schema":schema})
+        body: JSON.stringify({"oldProjectName":projectName,"newProjectName":document.getElementById("titleInput").value,"schema":schema})
         })
         .then(response => response.text())
         .then(data => loadProjectPage(data));
@@ -193,5 +193,5 @@ function updateSchema() {
 }
 
 function loadProjectPage(data) {
-    window.location.href = "/project.html?projectName="+projectName
+    window.location.href = "/project.html?projectName="+document.getElementById("titleInput").value;
 }

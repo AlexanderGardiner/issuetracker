@@ -42,15 +42,23 @@ app.post('/getProjectSchema',function(req,res){
 
 });
 
-// Edit schema of project (need to test for weird requests)
+// Edit schema of project 
 app.post('/editProjectSchema',function(req,res){
-    
     try {
-        console.log("Editing "+req.body.projectName+" Schema")
+        let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
+        // Rename project
+        if (req.body.oldProjectName != req.body.newProjectName) {
+            MongoDatabase.db("IssueTracker").collection(req.body.oldProjectName).rename(req.body.newProjectName);
+            schemaFile[req.body.newProjectName] = schemaFile[req.body.oldProjectName];
+            delete schemaFile[req.body.oldProjectName];
+        }
+        
+        // Edit schema
+        console.log("Editing "+req.body.newProjectName+" Schema")
         res.send("Editing Schema");
         let schema = {};
-        let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
-        let oldSchema = schemaFile[req.body.projectName]
+        
+        let oldSchema = schemaFile[req.body.newProjectName];
         let oldSchemaKeys = Object.keys(oldSchema);
         let submittedSchema = req.body.schema;
         let submittedSchemaKeys = Object.keys(submittedSchema);
@@ -69,13 +77,13 @@ app.post('/editProjectSchema',function(req,res){
                 }
             }
         }
-        if (schemaFile.hasOwnProperty(req.body.projectName)) {
-            setSchema(req.body.projectName,schema)
+        if (schemaFile.hasOwnProperty(req.body.newProjectName)) {
+            setSchema(req.body.newProjectName,schema)
         }
 
         for (let j=0; j<oldSchemaKeys.length;j++) {
             if (oldSchemaKeys[j]!=submittedSchemaKeys[j]) {
-                MongoDatabase.db("IssueTracker").collection(req.body.projectName).updateMany({},{$rename:{[oldSchemaKeys[j]]:submittedSchemaKeys[j]}})
+                MongoDatabase.db("IssueTracker").collection(req.body.newProjectName).updateMany({},{$rename:{[oldSchemaKeys[j]]:submittedSchemaKeys[j]}})
             }
             
         }
