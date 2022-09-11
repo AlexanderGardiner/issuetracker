@@ -43,7 +43,6 @@ function displaySchema(schema) {
         propertyNames.push(properties[i].insertCell(0))
         propertyNamesInput.push(document.createElement("Input"));
         propertyNamesInput[i].setAttribute("type", "text");
-        propertyNamesInput[i].setAttribute("readonly", "true");
         propertyNamesInput[i].setAttribute("value", keys[i]);
         propertyNamesInput[i].classList.add("tableinput");
         propertyNames[i].appendChild(propertyNamesInput[i]);

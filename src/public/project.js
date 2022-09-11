@@ -18,9 +18,8 @@ fetch("/getProject", {
 
 // Get table from html
 let table = document.getElementById("propertyTable");
-let projectKeys;
-let schema;
 let schemaKeys;
+let schema;
 // Display project in editable table
 function displayProject(data) {
   document.getElementById("timeEdited").innerHTML = "Time Edited: " + data.project[0].projectTimeEdited;
@@ -58,7 +57,6 @@ function displayProject(data) {
   
   
   for (let i=1;i<data.project.length;i++) {
-    projectKeys = Object.keys(data.project[i]);
 
     // Vars to access objects
     let propertiesInRow = [];
@@ -66,59 +64,61 @@ function displayProject(data) {
 
     properties.push(table.insertRow(-1));
 
+    // Create ID column
+    propertiesInRow.push(properties[i-1].insertCell(0));
+    propertiesInRowInput.push(document.createElement("textarea"));
+    propertiesInRowInput[0].setAttribute("readonly", "true");
+    propertiesInRowInput[0].innerHTML = ("value", JSON.stringify(data.project[i]._id).replaceAll('"', ''));
+    propertiesInRowInput[0].classList.add("tabletextarea");
+    propertiesInRow[0].appendChild(propertiesInRowInput[0])
+    
     // Create columns based on schema and populate with data
-    for (let j=0;j<projectKeys.length;j++) {
+    for (let j=1;j<schemaKeys.length+1;j++) {
       
       
-      if (j==0) {
-        // Create ID cells
+
+      // Create other types of cells
+      let typeOfCell = data.schema[schemaKeys[j-1]].type;
+      if (typeOfCell=="Text") {
+        // Create cell if it's type is text
+        propertiesInRow.push(properties[i-1].insertCell(j));
+        propertiesInRowInput.push(document.createElement("textarea"));
+        propertiesInRowInput[j].innerHTML = ("value", JSON.stringify(data.project[i][schemaKeys[j-1]]).replaceAll('"', ''));
+        propertiesInRowInput[j].classList.add("tabletextarea");
+      } else if (typeOfCell=="Time") {
+        // Create cell if it's type is time
         propertiesInRow.push(properties[i-1].insertCell(j));
         propertiesInRowInput.push(document.createElement("textarea"));
         propertiesInRowInput[j].setAttribute("readonly", "true");
-        propertiesInRowInput[j].innerHTML = ("value", JSON.stringify(data.project[i][projectKeys[j]]).replaceAll('"', ''));
+        console.log(JSON.stringify(data.project[i][schemaKeys[j-1]]).replaceAll('"', ''))
+        propertiesInRowInput[j].innerHTML = ("value", JSON.stringify(data.project[i][schemaKeys[j-1]]).replaceAll('"', ''));
         propertiesInRowInput[j].classList.add("tabletextarea");
-      } else {
-        // Create other types of cells
-        let typeOfCell = data.schema[schemaKeys[j-1]].type;
-        if (typeOfCell=="Text") {
-          // Create cell if it's type is text
-          propertiesInRow.push(properties[i-1].insertCell(j));
-          propertiesInRowInput.push(document.createElement("textarea"));
-          propertiesInRowInput[j].innerHTML = ("value", JSON.stringify(data.project[i][projectKeys[j]]).replaceAll('"', ''));
-          propertiesInRowInput[j].classList.add("tabletextarea");
-        } else if (typeOfCell=="Time") {
-          // Create cell if it's type is time
-          propertiesInRow.push(properties[i-1].insertCell(j));
-          propertiesInRowInput.push(document.createElement("textarea"));
-          propertiesInRowInput[j].setAttribute("readonly", "true");
-          propertiesInRowInput[j].innerHTML = ("value", JSON.stringify(data.project[i][projectKeys[j]]).replaceAll('"', ''));
-          propertiesInRowInput[j].classList.add("tabletextarea");
-        } else if (typeOfCell=="Multiple Choice") {
-          // Create cell if it's type is multiple choice
-          let options = data.schema[schemaKeys[j-1]].options;
-          let selectedIndex = 0;
-          propertiesInRow.push(properties[i-1].insertCell(j));
-          propertiesInRowInput.push(document.createElement("Select"));
-          for (let k = 0; k < options.length; k++) {
-            if (options[k]==data.project[i][projectKeys[j]]) {
-              selectedIndex = k;
-            }
-            let option = document.createElement("option");
-            option.value = options[k];
-            option.text = options[k];
-            propertiesInRowInput[j].appendChild(option);
+      } else if (typeOfCell=="Multiple Choice") {
+        // Create cell if it's type is multiple choice
+        let options = data.schema[schemaKeys[j-1]].options;
+        let selectedIndex = 0;
+        propertiesInRow.push(properties[i-1].insertCell(j));
+        propertiesInRowInput.push(document.createElement("Select"));
+        for (let k = 0; k < options.length; k++) {
+          if (options[k]==data.project[i][schemaKeys[j-1]]) {
+            selectedIndex = k;
           }
-          propertiesInRowInput[j].selectedIndex = selectedIndex;
-          propertiesInRowInput[j].classList.add("tableinput");
-        } else if (typeOfCell=="User") {
-          // Create cell if it's type is user
-          propertiesInRow.push(properties[i-1].insertCell(j));
-          propertiesInRowInput.push(document.createElement("textarea"));
-          propertiesInRowInput[j].innerHTML = ("value", JSON.stringify(data.project[i][projectKeys[j]]).replaceAll('"', ''));
-          propertiesInRowInput[j].classList.add("tabletextarea");
-          // TODO: link to users when setup login system
+          let option = document.createElement("option");
+          option.value = options[k];
+          option.text = options[k];
+          propertiesInRowInput[j].appendChild(option);
         }
+        propertiesInRowInput[j].selectedIndex = selectedIndex;
+        propertiesInRowInput[j].classList.add("tableinput");
+      } else if (typeOfCell=="User") {
+        // Create cell if it's type is user
+        propertiesInRow.push(properties[i-1].insertCell(j));
+        propertiesInRowInput.push(document.createElement("textarea"));
+        propertiesInRowInput[j].innerHTML = ("value", JSON.stringify(data.project[i][schemaKeys[j-1]]).replaceAll('"', ''));
+        propertiesInRowInput[j].classList.add("tabletextarea");
+        // TODO: link to users when setup login system
       }
+      
       
       
       
@@ -160,7 +160,6 @@ function addIssue() {
       
       // Create other types of cells
       let typeOfCell = schema[schemaKeys[j-1]].type;
-      console.log(typeOfCell)
       if (typeOfCell=="Text") {
         // Create cell if it's type is text
         propertiesInRow.push(properties.insertCell(j));

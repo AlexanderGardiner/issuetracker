@@ -51,6 +51,7 @@ app.post('/editProjectSchema',function(req,res){
         let schema = {};
         let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
         let oldSchema = schemaFile[req.body.projectName]
+        let oldSchemaKeys = Object.keys(oldSchema);
         let submittedSchema = req.body.schema;
         let submittedSchemaKeys = Object.keys(submittedSchema);
         for (let i=0;i<submittedSchemaKeys.length;i++) {
@@ -59,7 +60,7 @@ app.post('/editProjectSchema',function(req,res){
                 schema[submittedSchemaKeys[i]] = submittedSchema[submittedSchemaKeys[i]];
             } else {
                 schema[submittedSchemaKeys[i]] = {"type":"Multiple Choice"};
-                schema[submittedSchemaKeys[i]].options = oldSchema[submittedSchemaKeys[i]].options;
+                schema[submittedSchemaKeys[i]].options = oldSchema[oldSchemaKeys[i]].options;
                 for (let j=0;j<submittedSchema[submittedSchemaKeys[i]].newOptions.length;j++) {
                     if (submittedSchema[submittedSchemaKeys[i]].newOptions[j]!="") {
                         schema[submittedSchemaKeys[i]].options.push(submittedSchema[submittedSchemaKeys[i]].newOptions[j])
@@ -71,6 +72,15 @@ app.post('/editProjectSchema',function(req,res){
         if (schemaFile.hasOwnProperty(req.body.projectName)) {
             setSchema(req.body.projectName,schema)
         }
+
+        for (let j=0; j<oldSchemaKeys.length;j++) {
+            if (oldSchemaKeys[j]!=submittedSchemaKeys[j]) {
+                MongoDatabase.db("IssueTracker").collection(req.body.projectName).updateMany({},{$rename:{[oldSchemaKeys[j]]:submittedSchemaKeys[j]}})
+            }
+            
+        }
+        
+        
         
     } catch(err) {
         console.log(err);
