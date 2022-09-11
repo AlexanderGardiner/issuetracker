@@ -252,4 +252,6 @@ function editSchema() {
   window.location.href = "./editProjectSchema.html?projectName="+projectName;
 }
 
-
+function mainPage() {
+  window.location.href = "./";
+}

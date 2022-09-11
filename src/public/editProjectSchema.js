@@ -195,3 +195,7 @@ function updateSchema() {
 function loadProjectPage(data) {
     window.location.href = "/project.html?projectName="+document.getElementById("titleInput").value;
 }
+
+function cancel() {
+    window.location.href = "./";
+}

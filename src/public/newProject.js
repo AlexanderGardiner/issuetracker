@@ -171,3 +171,7 @@ function redirectToProject(data) {
     window.location.href = "./project.html?projectName="+projectName;
 
 }
+
+function cancel() {
+    window.location.href = "./";
+}
