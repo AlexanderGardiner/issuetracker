@@ -1,3 +1,6 @@
+let projectName;
+
+
 // Get the default schema and send it to be displayed
 fetch("/getDefaultSchema", {
     method: 'GET',
@@ -128,10 +131,9 @@ function removeProperty() {
     table.deleteRow(-1);
 }
 
-
 // Submit project to server to be created
 function createProject() {
-    let projectName = document.getElementById("titleInput").value;
+    projectName = document.getElementById("titleInput").value;
     let schema = {};
     
     for (let i = 0, row; row = table.rows[i]; i++) {
@@ -159,7 +161,13 @@ function createProject() {
         },
         body: JSON.stringify({"projectName":projectName,"schema":schema})
         })
-        .then(response => response.json())
-        .then(data => console.log(data));
+        .then(response => response.text())
+        .then(data => redirectToProject(data));
         
+}
+
+function redirectToProject(data) {
+
+    window.location.href = "./project.html?projectName="+projectName;
+
 }

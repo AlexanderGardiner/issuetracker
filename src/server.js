@@ -90,8 +90,11 @@ app.get('/getProjectNames',function(req,res){
 // Create new project in schema and in database (potential to break if custom request is run)
 app.post('/createNewProject',function(req,res){
     try {
+        let updatedTime = (new Date(Date.now())).toString();
+        
         console.log("Creating New Project "+req.body.projectName);
         createNewProject(req.body.projectName);
+        createNewIssue(req.body.projectName,{"projectTimeEditedExists":"true","projectTimeEdited":updatedTime});
         setSchema(req.body.projectName,req.body.schema);
         res.send("Creating New Project")
     } catch(err) {
@@ -120,7 +123,13 @@ app.post('/getProject',async function(req,res){
 // Update project issues
 app.post('/updateProject',async function(req,res){
     try {
+        
+
         res.send("Updating Project")
+
+        let updatedTime = (new Date(Date.now())).toString();
+        editEditedTime(req.body.projectName,updatedTime);
+
         console.log("Updating Project: "+JSON.stringify(req.body.projectName));
         project = req.body.project;
         for (let i=0; i<project.length;i++) {
@@ -204,6 +213,14 @@ async function editProperty(projectName,propertyID,propertyName,propertyData) {
     console.log("Editing Property "+propertyName+" from " + propertyID + " from "+projectName);
     let dbo = MongoDatabase.db("IssueTracker");
     await dbo.collection(projectName).updateOne({_id:ObjectId(propertyID.toString())},{ $set: { [propertyName]: propertyData } }, function(err, res) {
+        if (err) throw err;
+    });
+}
+
+async function editEditedTime(projectName,time) {
+    console.log("Editing Edited Time from Project "+projectName);
+    let dbo = MongoDatabase.db("IssueTracker");
+    await dbo.collection(projectName).updateOne({projectTimeEditedExists:"true"},{ $set: { projectTimeEdited: time } }, function(err, res) {
         if (err) throw err;
     });
 }

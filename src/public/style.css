@@ -4,6 +4,11 @@
     
 }
 
+#timeEdited {
+    margin-bottom:1vh;
+    text-align: center; 
+}
+
 #titleInput {
     
     text-align: center; 
@@ -53,17 +58,29 @@ td,th,tr {
 }
 
 
+
+
 .tableinput {
     font-family: Arial, Helvetica, sans-serif;
     margin: 5px;
     padding: 5px 5px;
     font-size: 20px;
     width:90%;
-    height:auto;
+    height: 3em;
     border: none;
 
 }
 
+.tabletextarea {
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 5px;
+    padding: 5px 5px;
+    font-size: 20px;
+    width:90%;
+    height: 3em;
+    border: none;
+}
 .multipleChoices {
     width: 500px;
 }
+
