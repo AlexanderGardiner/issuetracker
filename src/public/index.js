@@ -18,10 +18,11 @@ function displayProjectNames(projectNames) {
     // Create buttons
     for (let i=0;i<projectNames.length;i++) {
         projectButtons.push(document.createElement("button"));
+        
         projectButtons[i].innerHTML = projectNames[i];
         projectButtons[i].classList.add("projectButton");
         projectButtons[i].onclick = function() { loadProject(projectNames[i])};
-        document.body.appendChild(projectButtons[i]);
+        document.getElementById("projectDiv").appendChild(projectButtons[i]);
         
     }
 }

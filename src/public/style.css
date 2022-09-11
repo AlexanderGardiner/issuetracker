@@ -16,8 +16,8 @@
 }
 .projectButton {
     margin:0 auto;
-    display:block;
     margin-top: 10px;
+    display:block;
     padding: 15px 32px;
     text-align: center;
     text-decoration: none;
@@ -37,6 +37,7 @@
 
 .propertyButton {
     margin:0 auto;
+
     display:block;
     margin-top: 10px;
     padding: 15px 32px;
@@ -74,24 +75,38 @@ td,th,tr {
 .tableinput {
     font-family: Arial, Helvetica, sans-serif;
     margin: 5px;
-    padding: 5px 5px;
     font-size: 20px;
     width:90%;
     height: 3em;
     border: none;
-
+    box-sizing: border-box;
+    -webkit-box-sizing:border-box;
+    -moz-box-sizing: border-box;
 }
 
 .tabletextarea {
     font-family: Arial, Helvetica, sans-serif;
     margin: 5px;
-    padding: 5px 5px;
     font-size: 20px;
     width:90%;
     height: 3em;
     border: none;
+    box-sizing: border-box;
+    -webkit-box-sizing:border-box;
+    -moz-box-sizing: border-box;
 }
 .multipleChoices {
     width: 500px;
+}
+
+#projectDiv {
+    width: max-content;
+    border-radius: 25px;
+    background-color: #bce4ee;
+    margin:0 auto;
+    margin-top:10px;
+    padding: 10px 40px;
+    
+    height: max-content;
 }
 
