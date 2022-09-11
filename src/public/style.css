@@ -18,12 +18,30 @@
     margin:0 auto;
     margin-top: 10px;
     margin-bottom: 10px;
-    display:block;
     padding: 15px 32px;
     text-align: center;
     text-decoration: none;
     font-size: 20px;
-}    
+    display:block;
+} 
+
+.projectSelectionButton {
+    margin:0 auto;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 20px;
+}
+
+.deleteProjectButton {
+    float: right;
+    margin-left:25px;
+    margin-top:21px;
+    padding: 2px 5px;
+    display: inline;
+}
 
 .newProjectButton {
     margin:0 auto;

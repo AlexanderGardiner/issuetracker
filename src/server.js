@@ -176,6 +176,20 @@ app.post('/updateProject',async function(req,res){
     
 });
 
+app.post('/deleteProject',async function(req,res){
+    try {
+        await deleteProject(req.body.projectName);
+        res.send("Deleted");
+        
+    } catch(err) {
+        console.log(err);
+        res.send ({"Error": err});
+    }
+    
+
+    
+});
+
 // Set express server to listen
 app.listen(PORT, function(err){
     if (err) console.log(err);
@@ -235,6 +249,7 @@ async function editProperty(projectName,propertyID,propertyName,propertyData) {
     });
 }
 
+// Edit time project was last edited
 async function editEditedTime(projectName,time) {
     console.log("Editing Edited Time from Project "+projectName);
     let dbo = MongoDatabase.db("IssueTracker");
@@ -243,6 +258,17 @@ async function editEditedTime(projectName,time) {
     });
 }
 
+async function deleteProject(projectName) {
+
+    let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
+    await MongoDatabase.db("IssueTracker").collection(projectName).drop();
+    
+    delete schemaFile[projectName];
+    fs.writeFileSync("schema.json",JSON.stringify(schemaFile));
+
+    
+
+}
 // Set schema for specific project
 function setSchema(projectName, schema) {
     console.log("Setting Schema")
@@ -250,7 +276,7 @@ function setSchema(projectName, schema) {
         let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
         schemaFile[projectName] = schema;
         console.log(schemaFile);
-        fs.writeFileSync("schema.json",JSON.stringify(schemaFile))
+        fs.writeFileSync("schema.json",JSON.stringify(schemaFile));
     } else {
         console.log("Project name invalid, please choose a different name")
     }
