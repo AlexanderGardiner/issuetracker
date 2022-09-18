@@ -305,6 +305,7 @@ function setSchema(projectName, schema) {
 async function main() {
 
     await startupDatabase();
+  
     await startExpressServer();
 
 }
