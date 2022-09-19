@@ -16,7 +16,7 @@ const fs = require('fs');
 
 // Vars for mongodb database
 const mySecret = process.env['url']
-var url = mySecret;
+var url = "mongodb+srv://Main:8dmfv2tXNor2HG9T@issuetracker.9w0hzlx.mongodb.net/?retryWrites=true&w=majority";
 var MongoDatabase;
 
 async function startExpressServer() {
