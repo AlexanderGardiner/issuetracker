@@ -1,4 +1,3 @@
-
 const process = require('process')
 process.chdir("src")
 
@@ -14,10 +13,10 @@ const MongoClient = require('mongodb').MongoClient;
 const ObjectId = require('mongodb').ObjectId;
 const fs = require('fs');
 
+
 // Vars for mongodb database
-
-
-var url = "mongodb+srv://Replitmain:78oSx137LVl4j42G@issuetracker.9w0hzlx.mongodb.net/?retryWrites=true&w=majority";
+const mySecret = process.env['url']
+var url = mySecret;
 var MongoDatabase;
 
 async function startExpressServer() {
