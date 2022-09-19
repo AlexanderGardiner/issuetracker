@@ -1,0 +1,25 @@
+{
+  "name": "issuetracker",
+  "version": "1.0.0",
+  "description": "<h1>Issue Tracker</h1>",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlexanderGardiner/IssueTracker.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AlexanderGardiner/IssueTracker/issues"
+  },
+  "homepage": "https://github.com/AlexanderGardiner/IssueTracker#readme",
+  "dependencies": {
+    "body-parser": "^1.20.0",
+    "express": "^4.18.1",
+    "mongodb": "^4.9.1"
+  }
+}

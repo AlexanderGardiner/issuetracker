@@ -15,22 +15,29 @@ function displayProjectNames(projectNames) {
     // Array to access created buttons
     projectButtons = [];
     deleteProjectButtons = [];
-
+    buttonsDivs = [];
     // Create buttons
     for (let i=0;i<projectNames.length;i++) {
+
+        buttonsDivs.push(document.createElement("div"));
+        buttonsDivs[i].classList.add("buttonsDivs");
+
+      
         projectButtons.push(document.createElement("button"));
         
         projectButtons[i].innerHTML = projectNames[i];
         projectButtons[i].classList.add("projectSelectionButton");
         projectButtons[i].onclick = function() { loadProject(projectNames[i])};
-        document.getElementById("projectDiv").appendChild(projectButtons[i]);
+
+      
+        buttonsDivs[i].appendChild(projectButtons[i]);
 
         deleteProjectButtons.push(document.createElement("button"));
-        deleteProjectButtons[i].classList.add("projectSelectionButton","deleteProjectButton");
+        deleteProjectButtons[i].classList.add("deleteProjectButton");
         deleteProjectButtons[i].onclick = function() { deleteProjectConfirmation(projectNames[i])};
         deleteProjectButtons[i].innerHTML = "Delete Project";
-        document.getElementById("projectDiv").appendChild(deleteProjectButtons[i]);
-        document.getElementById("projectDiv").appendChild(document.createElement("br"));
+        buttonsDivs[i].appendChild(deleteProjectButtons[i]);
+        document.getElementById("projectDiv").appendChild(buttonsDivs[i]);
 
     }
 }

@@ -36,11 +36,14 @@
 }
 
 .deleteProjectButton {
-    float: right;
-    margin-left:25px;
-    margin-top:21px;
-    padding: 2px 5px;
-    display: inline;
+    margin:0 auto;
+    margin-left: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 5px 10px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 15px;
 }
 
 .newProjectButton {

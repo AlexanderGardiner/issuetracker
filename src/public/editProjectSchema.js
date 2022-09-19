@@ -197,5 +197,5 @@ function loadProjectPage(data) {
 }
 
 function cancel() {
-    window.location.href = "./";
+    window.location.href = "/project.html?projectName="+projectName;
 }
