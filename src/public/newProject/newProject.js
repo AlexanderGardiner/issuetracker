@@ -168,10 +168,10 @@ function createProject() {
 
 function redirectToProject(data) {
 
-    window.location.href = "./project.html?projectName="+projectName;
+    window.location.href = "../project/project.html?projectName="+projectName;
 
 }
 
 function cancel() {
-    window.location.href = "./";
+    window.location.href = "../";
 }

@@ -1,3 +1,4 @@
+
 // Get project names and send them to load function
 fetch("/getProjectNames", {
     method: 'GET',
@@ -44,12 +45,12 @@ function displayProjectNames(projectNames) {
 
 // Load selected project
 function loadProject(projectName) {
-    window.location.href = "/project.html?projectName=" + projectName;
+    window.location.href = "project/project.html?projectName=" + projectName;
 }
 
 // Set page location to create project
 function createNewProject() {
-    window.location.href = "/newProject.html";
+    window.location.href = "newProject/newProject.html";
 }
 
 function deleteProjectConfirmation(projectName) {

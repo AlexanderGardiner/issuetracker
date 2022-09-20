@@ -193,9 +193,9 @@ function updateSchema() {
 }
 
 function loadProjectPage(data) {
-    window.location.href = "/project.html?projectName="+document.getElementById("titleInput").value;
+    window.location.href = "../project/project.html?projectName="+document.getElementById("titleInput").value;
 }
 
 function cancel() {
-    window.location.href = "/project.html?projectName="+projectName;
+    window.location.href = "../project/project.html?projectName="+projectName;
 }

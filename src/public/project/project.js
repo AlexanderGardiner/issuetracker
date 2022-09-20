@@ -249,9 +249,9 @@ function reloadPage(data) {
 }
 
 function editSchema() {
-  window.location.href = "./editProjectSchema.html?projectName="+projectName;
+  window.location.href = "../editProjectSchema/editProjectSchema.html?projectName="+projectName;
 }
 
 function mainPage() {
-  window.location.href = "./";
+  window.location.href = "../";
 }
