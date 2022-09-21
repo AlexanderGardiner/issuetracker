@@ -151,10 +151,11 @@ async function startExpressServer() {
   
           res.send("Updating Project")
   
-          let updatedTime = (new Date(Date.now())).toString();
+          let updatedTime = new Date(Date.now());
           editEditedTime(req.body.projectName,updatedTime);
   
           console.log("Updating Project: "+JSON.stringify(req.body.projectName));
+          
           project = req.body.project;
           for (let i=0; i<project.length;i++) {
               
@@ -168,6 +169,7 @@ async function startExpressServer() {
                   delete project[i].ID;
                   let keys = Object.keys(project[i]);
                   for (let j=0;j<keys.length;j++) {
+                 
                       editProperty(req.body.projectName,ID,keys[j],project[i][keys[j]]);
                   }
                   
@@ -269,7 +271,7 @@ async function editProperty(projectName,propertyID,propertyName,propertyData) {
 async function editEditedTime(projectName,time) {
     console.log("Editing Edited Time from Project "+projectName);
     let dbo = MongoDatabase.db("IssueTracker");
-    await dbo.collection(projectName).updateOne({projectTimeEditedExists:"true"},{ $set: { projectTimeEdited: time } }, function(err, res) {
+    await dbo.collection(projectName).updateOne({projectTimeEditedExists:"true"},{ $set: { projectTimeEdited: time.toUTCString() } }, function(err, res) {
         if (err) throw err;
     });
 }
@@ -285,6 +287,8 @@ async function deleteProject(projectName) {
     
 
 }
+
+
 // Set schema for specific project
 function setSchema(projectName, schema) {
     console.log("Setting Schema")

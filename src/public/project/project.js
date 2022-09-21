@@ -22,7 +22,7 @@ let schemaKeys;
 let schema;
 // Display project in editable table
 function displayProject(data) {
-  document.getElementById("timeEdited").innerHTML = "Time Edited: " + data.project[0].projectTimeEdited;
+  document.getElementById("timeEdited").innerHTML = "Time Edited: " + new Date(data.project[0].projectTimeEdited);
   document.getElementById("title").innerHTML = projectName;
   
   let properties = [];
@@ -90,8 +90,7 @@ function displayProject(data) {
         propertiesInRow.push(properties[i-1].insertCell(j));
         propertiesInRowInput.push(document.createElement("textarea"));
         propertiesInRowInput[j].setAttribute("readonly", "true");
-        console.log(JSON.stringify(data.project[i][schemaKeys[j-1]]).replaceAll('"', ''))
-        propertiesInRowInput[j].innerHTML = ("value", JSON.stringify(data.project[i][schemaKeys[j-1]]).replaceAll('"', ''));
+        propertiesInRowInput[j].innerHTML = ("value", new Date(data.project[i][schemaKeys[j-1]]));
         propertiesInRowInput[j].classList.add("tabletextarea");
       } else if (typeOfCell=="Multiple Choice") {
         // Create cell if it's type is multiple choice
@@ -170,7 +169,7 @@ function addIssue() {
         propertiesInRow.push(properties.insertCell(j));
         propertiesInRowInput.push(document.createElement("textarea"));
         propertiesInRowInput[j].setAttribute("readonly", "true");
-        propertiesInRowInput[j].innerHTML = ("value", (new Date(Date.now())).toString());
+        propertiesInRowInput[j].innerHTML = ("value", (new Date(Date.now())));
         propertiesInRowInput[j].classList.add("tabletextarea");
       } else if (typeOfCell=="Multiple Choice") {
         // Create cell if it's type is multiple choice
@@ -218,14 +217,22 @@ function updateProject() {
         if (j==0) {
           project[i].ID = rowData[j].children[0].value;
         } else {
-          project[i][schemaKeys[j-1]] = rowData[j].children[0].value;
+          if (schema[schemaKeys[j-1]].type=="Time" && i>0) {
+            console.log(rowData[j-1].children[0].value)
+            project[i][schemaKeys[j-1]] = new Date(rowData[j].children[0].value).toUTCString();
+
+          } else {
+            
+            project[i][schemaKeys[j-1]] = rowData[j].children[0].value;
+          }
+          
         }
         
       }
       
           
   }
-  // Remove blank first column
+  // Remove blank first row
   project.shift();
   
   // Send data to server
