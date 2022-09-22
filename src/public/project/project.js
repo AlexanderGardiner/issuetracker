@@ -3,6 +3,7 @@ const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 const projectName = urlParams.get('projectName')
 
+
 // Get project from server and send to be displayed
 fetch("/getProject", {
   method: 'POST',
