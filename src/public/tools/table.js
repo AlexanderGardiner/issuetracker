@@ -1,4 +1,4 @@
-class table {
+class tableGenerator {
   constructor(tableData,schema) {
     // Table data and schema both in format for a project but can be used for other tables
 
@@ -89,13 +89,6 @@ class table {
     
     
   }
-}
-
-window.onload=function(){
-  data = {"Title2": "","Time Created": "Wed, 21 Sep 2022 03:45:37 GMT","Status":"Not started","Reporter":""}
-  schema = {"Title2":{"type":"Text"},"Time Created":{"type":"Time"},"Status":{"type":"Multiple Choice","options":["Not started","Started","Complete"]},"Reporter":{"type":"User"}};
-  let table1 = new table([data],schema)
-
 }
 
 

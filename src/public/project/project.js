@@ -1,3 +1,10 @@
+// Testing Code
+data1 = {"Title2": "","Time Created": "Wed, 21 Sep 2022 03:45:37 GMT","Status":"Not started","Reporter":""}
+schema1 = {"Title2":{"type":"Text"},"Time Created":{"type":"Time"},"Status":{"type":"Multiple Choice","options":["Not started","Started","Complete"]},"Reporter":{"type":"User"}};
+let table1 = new tableGenerator([data1],schema1)
+
+
+
 // Get project to open from url
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
