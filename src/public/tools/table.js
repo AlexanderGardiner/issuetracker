@@ -23,12 +23,11 @@ class table {
       this.cellChildren[0].push(document.createElement("h1"));
       this.cells[0][i].appendChild(this.cellChildren[0][i]);
       this.cellChildren[0][i].innerHTML = this.schemaKeys[i];
+      this.cellChildren[0][i].classList.add("tableCellChild","tableHeaderCellChild");
     }
 
     
     // Create body
-    
-    
     for (let i=1;i<tableData.length+1;i++) {
       this.rows.push(this.table.insertRow(-1));
       this.cells.push([]);
@@ -36,8 +35,12 @@ class table {
       
       for (let j=0;j<this.schemaDataTypes.length;j++) {
         this.cells[i].push(this.rows[i].insertCell(-1));
-        
-        if (this.schemaDataTypes[j]=="Text") {
+        if (this.schemaDataTypes[j]=="_id") {
+          this.cellChildren[i].push(document.createElement("textarea"));
+          this.cells[i][j].appendChild(this.cellChildren[i][j]);
+          this.cellChildren[i][j].innerHTML = tableData[i-1][this.schemaKeys[j]];
+          this.cellChildren[i][j].setAttribute("readonly", "true");
+        } else if (this.schemaDataTypes[j]=="Text") {
           this.cellChildren[i].push(document.createElement("textarea"));
           this.cells[i][j].appendChild(this.cellChildren[i][j]);
           this.cellChildren[i][j].innerHTML = tableData[i-1][this.schemaKeys[j]];
@@ -46,6 +49,7 @@ class table {
           this.cellChildren[i].push(document.createElement("textarea"));
           this.cells[i][j].appendChild(this.cellChildren[i][j]);
           this.cellChildren[i][j].innerHTML = new Date(tableData[i-1][this.schemaKeys[j]]);
+          this.cellChildren[i][j].setAttribute("readonly", "true");
         } else if (this.schemaDataTypes[j]=="Multiple Choice") {
           this.cellChildren[i].push(document.createElement("select"));
           let options = schema[this.schemaKeys[j]].options;
@@ -70,6 +74,11 @@ class table {
           this.cellChildren[i][j].innerHTML = tableData[i-1][this.schemaKeys[j]];
           
         }
+
+        this.cellChildren[i][j].classList.add("tableCellChild");
+
+        this.cells[i][j].style.width = "1000px";    
+  
         
       }
       
