@@ -133,36 +133,38 @@ function removeProperty() {
 
 // Submit project to server to be created
 function createProject() {
-    projectName = document.getElementById("titleInput").value;
-    let schema = {};
-    
-    for (let i = 0, row; row = table.rows[i]; i++) {
-        let rowData = row.cells;
-        if (rowData[0].children.length>0) {
-            schema[rowData[0].children[0].value] = {"type":"text"};
-            schema[rowData[0].children[0].value].type = rowData[1].children[0].value;
-            if (rowData[1].children[0].value=="Multiple Choice") {
-                let options = rowData[2].children[0].value.split(",");
-                schema[rowData[0].children[0].value].options = options;
-            }
-            
-        }
-            
-    }
-    console.log(JSON.stringify(schema))
-    
-    // Send new project to server
-    fetch("/createNewProject", {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'access-control-allow-origin': '*'
-        },
-        body: JSON.stringify({"projectName":projectName,"schema":schema})
-        })
-        .then(response => response.text())
-        .then(data => redirectToProject(data));
+
+  projectName = document.getElementById("titleInput").value;
+  let schema = {};
+  schema["_id"] = {"type":"_id"}
+  for (let i = 0, row; row = table.rows[i]; i++) {
+      let rowData = row.cells;
+      if (rowData[0].children.length>0) {
+          
+          schema[rowData[0].children[0].value] = {"type":"text"};
+          schema[rowData[0].children[0].value].type = rowData[1].children[0].value;
+          if (rowData[1].children[0].value=="Multiple Choice") {
+              let options = rowData[2].children[0].value.split(",");
+              schema[rowData[0].children[0].value].options = options;
+          }
+          
+      }
+          
+  }
+  console.log(JSON.stringify(schema))
+  
+  // Send new project to server
+  fetch("/createNewProject", {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'access-control-allow-origin': '*'
+      },
+      body: JSON.stringify({"projectName":projectName,"schema":schema})
+      })
+      .then(response => response.text())
+      .then(data => redirectToProject(data));
         
 }
 

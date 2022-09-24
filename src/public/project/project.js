@@ -1,9 +1,3 @@
-// Testing Code
-data1 = {"Title2": "","Time Created": "Wed, 21 Sep 2022 03:45:37 GMT","Status":"Not started","Reporter":""}
-schema1 = {"Title2":{"type":"Text"},"Time Created":{"type":"Time"},"Status":{"type":"Multiple Choice","options":["Not started","Started","Complete"]},"Reporter":{"type":"User"}};
-let table1 = new tableGenerator([data1],schema1)
-
-
 
 // Get project to open from url
 const queryString = window.location.search;
@@ -25,225 +19,58 @@ fetch("/getProject", {
   .then(data => displayProject(data));
 
 // Get table from html
-let table = document.getElementById("propertyTable");
+let projectTable;
 let schemaKeys;
 let schema;
+let project;
+let issueIDsToDelete = [];
 // Display project in editable table
 function displayProject(data) {
   document.getElementById("timeEdited").innerHTML = "Time Edited: " + new Date(data.project[0].projectTimeEdited);
   document.getElementById("title").innerHTML = projectName;
-  
-  let properties = [];
-  schemaKeys = Object.keys(data.schema)
+  project = data.project;
   schema = data.schema;
-  // Vars for headers
-  let header;
-  let headerRow = [];
-  let headerRowInputs = [];
 
-  // Create ID header
-  header = (table.insertRow(-1));
-  headerRow.push(header.insertCell(0));
-  headerRowInputs.push(document.createElement("h1"));
-  headerRowInputs[0].innerHTML =  "ID";
-  headerRowInputs[0].classList.add("tableinput");
+  // Need to add users
+  project.shift();
 
-  headerRow[0].appendChild(headerRowInputs[0])
-
-  // Create other headers
-  for (let i=1;i<schemaKeys.length+1;i++) {
-    
-    headerRow.push(header.insertCell(i));
-    headerRowInputs.push(document.createElement("h1"));
-    headerRowInputs[i].innerHTML = JSON.stringify(schemaKeys[i-1]).replaceAll('"', '');
-    headerRowInputs[i].classList.add("tableinput");
-
-    headerRow[i].appendChild(headerRowInputs[i])
-
-  }
-
-  
-  
-  for (let i=1;i<data.project.length;i++) {
-
-    // Vars to access objects
-    let propertiesInRow = [];
-    let propertiesInRowInput = [];
-
-    properties.push(table.insertRow(-1));
-
-    // Create ID column
-    propertiesInRow.push(properties[i-1].insertCell(0));
-    propertiesInRowInput.push(document.createElement("textarea"));
-    propertiesInRowInput[0].setAttribute("readonly", "true");
-    propertiesInRowInput[0].innerHTML = ("value", JSON.stringify(data.project[i]._id).replaceAll('"', ''));
-    propertiesInRowInput[0].classList.add("tabletextarea");
-    propertiesInRow[0].appendChild(propertiesInRowInput[0])
-    
-    // Create columns based on schema and populate with data
-    for (let j=1;j<schemaKeys.length+1;j++) {
-      
-      
-
-      // Create other types of cells
-      let typeOfCell = data.schema[schemaKeys[j-1]].type;
-      if (typeOfCell=="Text") {
-        // Create cell if it's type is text
-        propertiesInRow.push(properties[i-1].insertCell(j));
-        propertiesInRowInput.push(document.createElement("textarea"));
-        propertiesInRowInput[j].innerHTML = ("value", JSON.stringify(data.project[i][schemaKeys[j-1]]).replaceAll('"', ''));
-        propertiesInRowInput[j].classList.add("tabletextarea");
-      } else if (typeOfCell=="Time") {
-        // Create cell if it's type is time
-        propertiesInRow.push(properties[i-1].insertCell(j));
-        propertiesInRowInput.push(document.createElement("textarea"));
-        propertiesInRowInput[j].setAttribute("readonly", "true");
-        propertiesInRowInput[j].innerHTML = ("value", new Date(data.project[i][schemaKeys[j-1]]));
-        propertiesInRowInput[j].classList.add("tabletextarea");
-      } else if (typeOfCell=="Multiple Choice") {
-        // Create cell if it's type is multiple choice
-        let options = data.schema[schemaKeys[j-1]].options;
-        let selectedIndex = 0;
-        propertiesInRow.push(properties[i-1].insertCell(j));
-        propertiesInRowInput.push(document.createElement("Select"));
-        for (let k = 0; k < options.length; k++) {
-          if (options[k]==data.project[i][schemaKeys[j-1]]) {
-            selectedIndex = k;
-          }
-          let option = document.createElement("option");
-          option.value = options[k];
-          option.text = options[k];
-          propertiesInRowInput[j].appendChild(option);
-        }
-        propertiesInRowInput[j].selectedIndex = selectedIndex;
-        propertiesInRowInput[j].classList.add("tableinput");
-      } else if (typeOfCell=="User") {
-        // Create cell if it's type is user
-        propertiesInRow.push(properties[i-1].insertCell(j));
-        propertiesInRowInput.push(document.createElement("textarea"));
-        propertiesInRowInput[j].innerHTML = ("value", JSON.stringify(data.project[i][schemaKeys[j-1]]).replaceAll('"', ''));
-        propertiesInRowInput[j].classList.add("tabletextarea");
-        // TODO: link to users when setup login system
-      }
-      
-      
-      
-      
-      
-      // Add to table
-      
-
-      propertiesInRow[j].appendChild(propertiesInRowInput[j])
-    }
-      
-  }
-
-
-  // Set width of td to be size of page
-  let tdElements = document.getElementsByTagName("td");
-
-  for(let i = 0; i < tdElements.length; i++) {
-    tdElements[i].style.width = "1000px";
-  }
+  projectTable = new table(project,schema);
 }
 
 function addIssue() {
-  let propertiesInRow = [];
-  let propertiesInRowInput = [];
-
-  let properties  = table.insertRow(-1);
-
-  // Create columns based on schema and populate with data
-  for (let j=0;j<schemaKeys.length+1;j++) {
-    
-    
-    if (j==0) {
-      // Create ID cells
-      propertiesInRow.push(properties.insertCell(j));
-      propertiesInRowInput.push(document.createElement("textarea"));
-      propertiesInRowInput[j].setAttribute("readonly", "true");
-      propertiesInRowInput[j].classList.add("tabletextarea");
-    } else {
-      
-      // Create other types of cells
-      let typeOfCell = schema[schemaKeys[j-1]].type;
-      if (typeOfCell=="Text") {
-        // Create cell if it's type is text
-        propertiesInRow.push(properties.insertCell(j));
-        propertiesInRowInput.push(document.createElement("textarea"));
-        propertiesInRowInput[j].classList.add("tabletextarea");
-      } else if (typeOfCell=="Time") {
-        // Create cell if it's type is time
-        propertiesInRow.push(properties.insertCell(j));
-        propertiesInRowInput.push(document.createElement("textarea"));
-        propertiesInRowInput[j].setAttribute("readonly", "true");
-        propertiesInRowInput[j].innerHTML = ("value", (new Date(Date.now())));
-        propertiesInRowInput[j].classList.add("tabletextarea");
-      } else if (typeOfCell=="Multiple Choice") {
-        // Create cell if it's type is multiple choice
-        let options = schema[schemaKeys[j-1]].options;
-        let selectedIndex = 0;
-        propertiesInRow.push(properties.insertCell(j));
-        propertiesInRowInput.push(document.createElement("Select"));
-        for (let k = 0; k < options.length; k++) {
-          let option = document.createElement("option");
-          option.value = options[k];
-          option.text = options[k];
-          propertiesInRowInput[j].appendChild(option);
-        }
-        propertiesInRowInput[j].selectedIndex = selectedIndex;
-        propertiesInRowInput[j].classList.add("tableinput");
-      } else if (typeOfCell=="User") {
-        // Create cell if it's type is user
-        propertiesInRow.push(properties.insertCell(j));
-        propertiesInRowInput.push(document.createElement("textarea"));
-        propertiesInRowInput[j].classList.add("tabletextarea");
-        // TODO: link to users when setup login system
-      }
+  // Add issue
+  let blankData = {}
+  schemaKeys = Object.keys(schema);
+  for (let i=0; i<schemaKeys.length;i++) {
+    console.log(schema[schemaKeys[i]].type)
+    if (schema[schemaKeys[i]].type=="_id") {
+      blankData[schemaKeys[i]] = "Not In Database";
+    } else if (schema[schemaKeys[i]].type=="Text") {
+      blankData[schemaKeys[i]] = "";
+    } else if (schema[schemaKeys[i]].type=="Time") {
+      blankData[schemaKeys[i]] = Date.now();
+    } else if (schema[schemaKeys[i]].type=="Multiple Choice") {
+      blankData[schemaKeys[i]] = ""
+    } else if (schema[schemaKeys[i]].type=="User") {
+      blankData[schemaKeys[i]] = ""
     }
     
-    
-    
-    
-    // Add cells to table
-    
+  }  
+  
+  projectTable.addRow(blankData,schema)
 
-    propertiesInRow[j].appendChild(propertiesInRowInput[j])
-  }
 }
 
 function removeIssue() {
-  table.deleteRow(-1);
+  issueIDsToDelete.push(projectTable.cellChildren[projectTable.cellChildren.length-1][0].value);
+  projectTable.removeRow();
 }
 function updateProject() {
-  let project = [];
-  // Get project data from HTML
-  for (let i = 0, row; row = table.rows[i]; i++) {
-      project.push({})
-      let rowData = row.cells;
-      for (let j=0; j<rowData.length; j++) {
-        if (j==0) {
-          project[i].ID = rowData[j].children[0].value;
-        } else {
-          if (schema[schemaKeys[j-1]].type=="Time" && i>0) {
-            console.log(rowData[j-1].children[0].value)
-            project[i][schemaKeys[j-1]] = new Date(rowData[j].children[0].value).toUTCString();
 
-          } else {
-            
-            project[i][schemaKeys[j-1]] = rowData[j].children[0].value;
-          }
-          
-        }
-        
-      }
-      
-          
-  }
-  // Remove blank first row
-  project.shift();
-  
+  let project = projectTable.exportTableAsText(schema);
   // Send data to server
+
+  
   fetch("/updateProject", {
     method: 'POST',
     headers: {
@@ -251,10 +78,10 @@ function updateProject() {
       'Content-Type': 'application/json',
       'access-control-allow-origin': '*'
     },
-    body: JSON.stringify({"projectName":projectName,"project":project})
+    body: JSON.stringify({"projectName":projectName,"project":project,"issueIDsToDelete":issueIDsToDelete})
     }).then((response) => response.text())
     .then((data) => reloadPage(data));
-
+    
     
 
 }

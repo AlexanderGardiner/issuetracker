@@ -15,7 +15,6 @@ const fs = require('fs');
 
 
 // Vars for mongodb database
-const mySecret = process.env['url']
 var url = "mongodb+srv://Main:8dmfv2tXNor2HG9T@issuetracker.9w0hzlx.mongodb.net/?retryWrites=true&w=majority";
 var MongoDatabase;
 
@@ -155,26 +154,27 @@ async function startExpressServer() {
           editEditedTime(req.body.projectName,updatedTime);
   
           console.log("Updating Project: "+JSON.stringify(req.body.projectName));
-          
           project = req.body.project;
           for (let i=0; i<project.length;i++) {
               
-              if (project[i].ID=="") {
+              if (project[i]._id=="Not In Database") {
                   // Send to database if new property
-                  delete project[i].ID;
+                  delete project[i]._id;
                   createNewIssue(req.body.projectName,project[i])
               } else {
                   // Send to database if old property
-                  let ID = project[i].ID;
-                  delete project[i].ID;
+                  let ID = project[i]._id;
+                  delete project[i]._id;
                   let keys = Object.keys(project[i]);
                   for (let j=0;j<keys.length;j++) {
-                 
+                      
                       editProperty(req.body.projectName,ID,keys[j],project[i][keys[j]]);
                   }
                   
               }
           }
+        // Delete any deleted issues
+        deleteIssues(req.body.issueIDsToDelete,req.body.projectName);
       } catch(err) {
           console.log(err);
           res.send ({"Error": err});
@@ -220,6 +220,19 @@ async function startupDatabase() {
   
 }
 
+// Delete arr of issues
+async function deleteIssues(issueIDs,projectName) {
+  try {
+    for (let i=0; i<issueIDs.length;i++) {
+      await MongoDatabase.db("IssueTracker").collection(projectName).deleteOne({_id:ObjectId(issueIDs[i])});
+    }
+  } catch(err) {
+    console.log(err);
+  }
+    
+  
+}
+
 // Get project names from database
 async function getProjectNames() {
     let collections = await MongoDatabase.db("IssueTracker").listCollections().toArray();
@@ -250,6 +263,7 @@ async function createNewProject(projectName) {
 // Create new issue in specific project
 async function createNewIssue(projectName,issueData) {
     console.log("Creating New Issue");    
+  
     let dbo = MongoDatabase.db("IssueTracker");
 
     await dbo.collection(projectName).insertOne(issueData, function(err, res) {
@@ -260,7 +274,8 @@ async function createNewIssue(projectName,issueData) {
 
 // Edit issue in specific project
 async function editProperty(projectName,propertyID,propertyName,propertyData) {
-    console.log("Editing Property "+propertyName+" from " + propertyID + " from "+projectName);
+    console.log("Editing Property "+propertyName+" from " + propertyID + " from "+projectName+" and setting to "+propertyData);
+  
     let dbo = MongoDatabase.db("IssueTracker");
     await dbo.collection(projectName).updateOne({_id:ObjectId(propertyID.toString())},{ $set: { [propertyName]: propertyData } }, function(err, res) {
         if (err) throw err;

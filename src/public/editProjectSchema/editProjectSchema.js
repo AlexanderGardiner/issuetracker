@@ -1,3 +1,5 @@
+// Need to stop editing id name of issue
+
 // Get project to open from url
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
