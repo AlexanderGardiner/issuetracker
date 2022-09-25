@@ -30,60 +30,8 @@ class table {
     
     // Create body
     for (let i=1;i<tableData.length+1;i++) {
-      this.rows.push(this.table.insertRow(-1));
-      this.cells.push([]);
-      this.cellChildren.push([]);
-      for (let j=0;j<this.schemaDataTypes.length;j++) {
-        this.cells[i].push(this.rows[i].insertCell(-1));
-        if (this.schemaDataTypes[j]=="_id") {
-          
-          this.cellChildren[i].push(document.createElement("textarea"));
-          this.cells[i][j].appendChild(this.cellChildren[i][j]);
-          this.cellChildren[i][j].innerHTML = tableData[i-1][this.schemaKeys[j]];
-          this.cellChildren[i][j].setAttribute("readonly", "true");
-        } else if (this.schemaDataTypes[j]=="Text") {
-          this.cellChildren[i].push(document.createElement("textarea"));
-          this.cells[i][j].appendChild(this.cellChildren[i][j]);
-          this.cellChildren[i][j].innerHTML = tableData[i-1][this.schemaKeys[j]];
-          
-        } else if (this.schemaDataTypes[j]=="Time") {
-          this.cellChildren[i].push(document.createElement("textarea"));
-          this.cells[i][j].appendChild(this.cellChildren[i][j]);
-          this.cellChildren[i][j].innerHTML = new Date(tableData[i-1][this.schemaKeys[j]]);
-          this.cellChildren[i][j].setAttribute("readonly", "true");
-        } else if (this.schemaDataTypes[j]=="Multiple Choice") {
-          this.cellChildren[i].push(document.createElement("select"));
-          let options = schema[this.schemaKeys[j]].options;
-          let selectedIndex;
-          for (let k=0; k<options.length;k++) {
-            if (options[k]==tableData[i-1][this.schemaKeys[j]]) {
-              selectedIndex = k;
-            }
-            let option = document.createElement("option");
-            option.value = options[k];
-            option.text = options[k];
-            this.cellChildren[i][j].appendChild(option);
-          } 
-          this.cellChildren[i][j].selectedIndex = selectedIndex;
-          
-          this.cells[i][j].appendChild(this.cellChildren[i][j]);
-
-        } else if (this.schemaDataTypes[j]=="User") {
-          this.cellChildren[i].push(document.createElement("textarea"));
-          this.cells[i][j].appendChild(this.cellChildren[i][j]);
-          this.cellChildren[i][j].innerHTML = tableData[i-1][this.schemaKeys[j]];
-          
-        }
-
-        this.cellChildren[i][j].classList.add("tableCellChild");
-
-        this.cells[i][j].style.width = "1000px";    
-  
-        
-      }
-      
+      this.addRow(tableData[i-1],schema)
     }
-
 
     
     
@@ -112,6 +60,12 @@ class table {
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
         this.cellChildren[i][j].innerHTML = tableData[this.schemaKeys[j]];
         
+      } else if (this.schemaDataTypes[j]=="ReadOnlyText") {
+          this.cellChildren[i].push(document.createElement("textarea"));
+          this.cells[i][j].appendChild(this.cellChildren[i][j]);
+          this.cellChildren[i][j].setAttribute("readonly", "true");
+          this.cellChildren[i][j].innerHTML = tableData[this.schemaKeys[j]].toString();
+          
       } else if (this.schemaDataTypes[j]=="Time") {
         this.cellChildren[i].push(document.createElement("textarea"));
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
@@ -134,6 +88,24 @@ class table {
         
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
 
+      } else if (this.schemaDataTypes[j]=="Multiple Choice ReadOnly") {
+        this.cellChildren[i].push(document.createElement("select"));
+        let options = schema[this.schemaKeys[j]].options;
+        let selectedIndex;
+        for (let k=0; k<options.length;k++) {
+          if (options[k]==tableData[this.schemaKeys[j]]) {
+            selectedIndex = k;
+          }
+          let option = document.createElement("option");
+          option.value = options[k];
+          option.text = options[k];
+          this.cellChildren[i][j].appendChild(option);
+        } 
+        this.cellChildren[i][j].selectedIndex = selectedIndex;
+        this.cellChildren[i][j].disabled=true;
+        
+        this.cells[i][j].appendChild(this.cellChildren[i][j]);
+
       } else if (this.schemaDataTypes[j]=="User") {
         this.cellChildren[i].push(document.createElement("textarea"));
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
@@ -142,12 +114,12 @@ class table {
       }
 
       this.cellChildren[i][j].classList.add("tableCellChild");
-
       this.cells[i][j].style.width = "1000px";    
 
       
     }
     
+
   }
 
   removeRow() {
@@ -186,6 +158,7 @@ class table {
         
       }
     }
+
     return this.project;
     // Need to add table export function
   }

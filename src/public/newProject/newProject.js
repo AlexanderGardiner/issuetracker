@@ -18,7 +18,8 @@ let table = document.getElementById("propertySelectorTable");
 let options = ["Text","Time","Multiple Choice","User"]
 // Display schema in editable table using inputs
 function displaySchema(schema) {
-    // Lists to access created elements
+    
+  // Lists to access created elements
     let properties = [];
     let propertyNames = [];
     let propertyNamesInput = [];

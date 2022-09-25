@@ -37,8 +37,13 @@ async function startExpressServer() {
       
       try {
           console.log("Getting "+req.body.projectName+" Schema");
-          let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
-          res.send(schemaFile[req.body.projectName])
+          let schema = {};
+          schema[req.body.projectName] = {};
+          schema[req.body.projectName]._id = "_id";
+          schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
+          schema[req.body.projectName] = {...schema[req.body.projectName],...schemaFile[req.body.projectName]}
+          
+          res.send(schema[req.body.projectName])
       } catch (err) {
           console.log(err);
           res.send ({"Error": err});
@@ -62,7 +67,8 @@ async function startExpressServer() {
           console.log("Editing "+req.body.newProjectName+" Schema")
           res.send("Editing Schema");
           let schema = {};
-          
+          schema["_id"] = {"type":"_id"};
+          delete schemaFile[req.body.newProjectName]["_id"];
           let oldSchema = schemaFile[req.body.newProjectName];
           let oldSchemaKeys = Object.keys(oldSchema);
           let submittedSchema = req.body.schema;

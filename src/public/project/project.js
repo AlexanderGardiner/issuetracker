@@ -30,7 +30,6 @@ function displayProject(data) {
   document.getElementById("title").innerHTML = projectName;
   project = data.project;
   schema = data.schema;
-
   // Need to add users
   project.shift();
 
@@ -42,7 +41,6 @@ function addIssue() {
   let blankData = {}
   schemaKeys = Object.keys(schema);
   for (let i=0; i<schemaKeys.length;i++) {
-    console.log(schema[schemaKeys[i]].type)
     if (schema[schemaKeys[i]].type=="_id") {
       blankData[schemaKeys[i]] = "Not In Database";
     } else if (schema[schemaKeys[i]].type=="Text") {
@@ -56,7 +54,6 @@ function addIssue() {
     }
     
   }  
-  
   projectTable.addRow(blankData,schema)
 
 }
