@@ -56,64 +56,79 @@ async function startExpressServer() {
   app.post('/editProjectSchema',function(req,res){
       try {
           let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
+          let oldProjectName = req.body.oldProjectName;
+          let newProjectName = req.body.newProjectName;
           // Rename project
-          if (req.body.oldProjectName != req.body.newProjectName) {
-              MongoDatabase.db("IssueTracker").collection(req.body.oldProjectName).rename(req.body.newProjectName);
-              schemaFile[req.body.newProjectName] = schemaFile[req.body.oldProjectName];
-              delete schemaFile[req.body.oldProjectName];
+          if (oldProjectName != newProjectName) {
+              MongoDatabase.db("IssueTracker").collection(oldProjectName).rename(newProjectName);
+              schemaFile[newProjectName] = schemaFile[oldProjectName];
+              delete schemaFile[oldProjectName];
           }
           
           // Edit schema
-          console.log("Editing "+req.body.newProjectName+" Schema")
+          console.log("Editing "+newProjectName+" Schema")
           res.send("Editing Schema");
           let schema = {};
           schema["_id"] = {"type":"_id"};
-          delete schemaFile[req.body.newProjectName]["_id"];
-          let oldSchema = schemaFile[req.body.newProjectName];
+          delete schemaFile[newProjectName]["_id"];
+          let oldSchema = schemaFile[newProjectName];
           console.log(oldSchema)
 
           
           let oldSchemaKeys = Object.keys(oldSchema);
           let submittedSchema = req.body.schema;
+          console.log(submittedSchema)
           let submittedSchemaKeys = Object.keys(submittedSchema);
           for (let i=0;i<submittedSchemaKeys.length;i++) {
-              // Deleting objects from schema not working
-              if (submittedSchema[submittedSchemaKeys[i]].type!="Multiple Choice") {
-                  schema[submittedSchemaKeys[i]] = submittedSchema[submittedSchemaKeys[i]];
+            if (submittedSchema[submittedSchemaKeys[i]].type!="Multiple Choice") {
+              schema[submittedSchemaKeys[i]] = submittedSchema[submittedSchemaKeys[i]];
+            } else {
+              schema[submittedSchemaKeys[i]] = {"type":"Multiple Choice"};
+              if (i<oldSchemaKeys.length) {
+                  
+                  console.log("SchemaKeys " + oldSchemaKeys[i])
+                  console.log("OldSchemaKeys " +oldSchema[oldSchemaKeys[i]].options)
+                  schema[submittedSchemaKeys[i]].options = oldSchema[oldSchemaKeys[i]].options;
               } else {
-                  schema[submittedSchemaKeys[i]] = {"type":"Multiple Choice"};
-                  if (i<oldSchemaKeys.length) {
-                      
-                      console.log("SchemaKeys " + oldSchemaKeys[i])
-                      console.log("OldSchemaKeys " +oldSchema[oldSchemaKeys[i]].options)
-                      schema[submittedSchemaKeys[i]].options = oldSchema[oldSchemaKeys[i]].options;
-                  } else {
-                      schema[submittedSchemaKeys[i]].options = [];
+                  schema[submittedSchemaKeys[i]].options = [];
+              }
+              
+              for (let j=0;j<submittedSchema[submittedSchemaKeys[i]].newOptions.length;j++) {
+                  if (submittedSchema[submittedSchemaKeys[i]].newOptions[j]!="") {
+                      schema[submittedSchemaKeys[i]].options.push(submittedSchema[submittedSchemaKeys[i]].newOptions[j])
                   }
                   
-                  for (let j=0;j<submittedSchema[submittedSchemaKeys[i]].newOptions.length;j++) {
-                      if (submittedSchema[submittedSchemaKeys[i]].newOptions[j]!="") {
-                          schema[submittedSchemaKeys[i]].options.push(submittedSchema[submittedSchemaKeys[i]].newOptions[j])
-                      }
-                      
-                  }
               }
-          }
-          // for (let i=0; i<req.body.schemaIDsToDelete;i++) {
-          //   delete schema[schemaIDsToDelete[i]];
-          // }
-          
-          if (schemaFile.hasOwnProperty(req.body.newProjectName)) {
-              setSchema(req.body.newProjectName,schema)
-          }
-  
-          for (let j=0; j<oldSchemaKeys.length;j++) {
-              if (oldSchemaKeys[j]!=submittedSchemaKeys[j]) {
-                  MongoDatabase.db("IssueTracker").collection(req.body.newProjectName).updateMany({},{$rename:{[oldSchemaKeys[j]]:submittedSchemaKeys[j]}})
-              }
+            }
+            
               
           }
           
+          
+          if (schemaFile.hasOwnProperty(newProjectName)) {
+              setSchema(newProjectName,schema)
+          }
+  
+          for (let j=0; j<oldSchemaKeys.length;j++) {
+            if (j<submittedSchemaKeys.length) {
+              if (oldSchemaKeys[j]!=submittedSchemaKeys[j]) {
+                  
+                  MongoDatabase.db("IssueTracker").collection(newProjectName).updateMany({},{$rename:{[oldSchemaKeys[j]]:submittedSchemaKeys[j]}});
+                  
+                  
+              }
+            }
+          }
+
+        console.log(req.body.deleteOldProperties)
+          if (req.body.deleteOldProperties==true) {
+            for (let j=0; j<req.body.schemaIDsToDelete.length;j++) {
+              schemaIDToDelete = req.body.schemaIDsToDelete[j];
+              console.log(schemaIDToDelete)
+              MongoDatabase.db("IssueTracker").collection(newProjectName).updateMany({},{ $unset: {[schemaIDToDelete]:""} }
+  )
+            }
+          }
           
           
       } catch(err) {

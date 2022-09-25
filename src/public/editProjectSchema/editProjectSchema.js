@@ -81,6 +81,7 @@ function removeProperty() {
 
 // Submit project to server to be created
 function updateSchema() {
+  let deleteOldProperties = confirm("Delete old properties (yes/no)?")
   let schemaData = schemaTable.exportTableAsText(tableSchema);
   let updatedSchema = {};
 
@@ -101,7 +102,7 @@ function updateSchema() {
           'Content-Type': 'application/json',
           'access-control-allow-origin': '*'
         },
-        body: JSON.stringify({"oldProjectName":projectName,"newProjectName":document.getElementById("titleInput").value,"schema":updatedSchema,"schemaIDsToDelete":schemaIDsToDelete})
+        body: JSON.stringify({"oldProjectName":projectName,"newProjectName":document.getElementById("titleInput").value,"schema":updatedSchema,"schemaIDsToDelete":schemaIDsToDelete,"deleteOldProperties":deleteOldProperties})
         })
         .then(response => response.text())
         .then(data => loadProjectPage(data));
@@ -109,7 +110,7 @@ function updateSchema() {
 }
 
 function loadProjectPage(data) {
-    //window.location.href = "../project/project.html?projectName="+document.getElementById("titleInput").value;
+    window.location.href = "../project/project.html?projectName="+document.getElementById("titleInput").value;
 }
 
 function cancel() {
