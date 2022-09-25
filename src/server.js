@@ -70,16 +70,27 @@ async function startExpressServer() {
           schema["_id"] = {"type":"_id"};
           delete schemaFile[req.body.newProjectName]["_id"];
           let oldSchema = schemaFile[req.body.newProjectName];
+          console.log(oldSchema)
+
+          
           let oldSchemaKeys = Object.keys(oldSchema);
           let submittedSchema = req.body.schema;
           let submittedSchemaKeys = Object.keys(submittedSchema);
           for (let i=0;i<submittedSchemaKeys.length;i++) {
-              
+              // Deleting objects from schema not working
               if (submittedSchema[submittedSchemaKeys[i]].type!="Multiple Choice") {
                   schema[submittedSchemaKeys[i]] = submittedSchema[submittedSchemaKeys[i]];
               } else {
                   schema[submittedSchemaKeys[i]] = {"type":"Multiple Choice"};
-                  schema[submittedSchemaKeys[i]].options = oldSchema[oldSchemaKeys[i]].options;
+                  if (i<oldSchemaKeys.length) {
+                      
+                      console.log("SchemaKeys " + oldSchemaKeys[i])
+                      console.log("OldSchemaKeys " +oldSchema[oldSchemaKeys[i]].options)
+                      schema[submittedSchemaKeys[i]].options = oldSchema[oldSchemaKeys[i]].options;
+                  } else {
+                      schema[submittedSchemaKeys[i]].options = [];
+                  }
+                  
                   for (let j=0;j<submittedSchema[submittedSchemaKeys[i]].newOptions.length;j++) {
                       if (submittedSchema[submittedSchemaKeys[i]].newOptions[j]!="") {
                           schema[submittedSchemaKeys[i]].options.push(submittedSchema[submittedSchemaKeys[i]].newOptions[j])
@@ -88,6 +99,10 @@ async function startExpressServer() {
                   }
               }
           }
+          // for (let i=0; i<req.body.schemaIDsToDelete;i++) {
+          //   delete schema[schemaIDsToDelete[i]];
+          // }
+          
           if (schemaFile.hasOwnProperty(req.body.newProjectName)) {
               setSchema(req.body.newProjectName,schema)
           }
@@ -225,6 +240,7 @@ async function startupDatabase() {
     
   
 }
+
 
 // Delete arr of issues
 async function deleteIssues(issueIDs,projectName) {

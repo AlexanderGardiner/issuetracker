@@ -1,4 +1,4 @@
-// Need to stop editing id name of issue
+
 
 // Get project to open from url
 const queryString = window.location.search;
@@ -25,6 +25,7 @@ let projectSchema;
 let schemaKeys;
 let tableSchema;
 let tableSchemaKeys;
+let schemaIDsToDelete = [];
 // Display schema in editable table using inputs
 function displaySchema(schema) {
   projectSchema = schema;
@@ -72,25 +73,26 @@ function addProperty() {
 
 // Remove last property from table
 function removeProperty() {
-    schemaTable.removeRow();
+  schemaIDsToDelete.push(schemaTable.cellChildren[schemaTable.cellChildren.length-1][0].value);
+  schemaTable.removeRow();
+    
 }
 
 
 // Submit project to server to be created
 function updateSchema() {
-
   let schemaData = schemaTable.exportTableAsText(tableSchema);
   let updatedSchema = {};
 
+  // Format multiple choice schema
   for (let i=0; i<schemaData.length;i++) {
     if (schemaData[i]["Type of Property"]=="Multiple Choice") {
-      updatedSchema[schemaData[i]["Name of Property"]] = {"type":schemaData[i]["Type of Property"],"options":schemaData[i]["Prexisting Choices"],"newOptions":schemaData[i]["New Choices"]};
+      updatedSchema[schemaData[i]["Name of Property"]] = {"type":schemaData[i]["Type of Property"],"options":[schemaData[i]["Prexisting Choices"]],"newOptions":schemaData[i]["New Choices"].split(',')};
     } else {
       updatedSchema[schemaData[i]["Name of Property"]] = {"type":schemaData[i]["Type of Property"]};
     }
     
   }
-
     // Send new project to server
     fetch("/editProjectSchema", {
         method: 'POST',
@@ -99,7 +101,7 @@ function updateSchema() {
           'Content-Type': 'application/json',
           'access-control-allow-origin': '*'
         },
-        body: JSON.stringify({"oldProjectName":projectName,"newProjectName":document.getElementById("titleInput").value,"schema":updatedSchema})
+        body: JSON.stringify({"oldProjectName":projectName,"newProjectName":document.getElementById("titleInput").value,"schema":updatedSchema,"schemaIDsToDelete":schemaIDsToDelete})
         })
         .then(response => response.text())
         .then(data => loadProjectPage(data));
@@ -107,7 +109,7 @@ function updateSchema() {
 }
 
 function loadProjectPage(data) {
-    window.location.href = "../project/project.html?projectName="+document.getElementById("titleInput").value;
+    //window.location.href = "../project/project.html?projectName="+document.getElementById("titleInput").value;
 }
 
 function cancel() {
