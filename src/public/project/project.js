@@ -19,7 +19,6 @@ fetch("/getProject", {
   .then(response => response.json())
   .then(data => displayProject(data));
 
-// Get table from html
 let projectTable;
 let schemaKeys;
 let schema;
@@ -27,6 +26,7 @@ let project;
 let issueIDsToDelete = [];
 // Display project in editable table
 function displayProject(data) {
+  console.log(data.project)
   document.getElementById("timeEdited").innerHTML = "Time Edited: " + new Date(data.project[0].projectTimeEdited);
   document.getElementById("title").innerHTML = projectName;
   project = data.project;
@@ -67,6 +67,7 @@ function removeIssue() {
 function updateProject() {
 
   let project = projectTable.exportTableAsText(schema);
+  console.log(project)
   // Send data to server
 
 
@@ -90,7 +91,7 @@ function updateProject() {
 }
 
 function reloadPage(data) {
-  window.location.reload(true)
+  window.location.reload(true);
 }
 
 function editSchema() {

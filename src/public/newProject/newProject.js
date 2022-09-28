@@ -13,166 +13,118 @@ fetch("/getDefaultSchema", {
     .then(response => response.json())
     .then(data => displaySchema(data));
 
-// Get table from html
-let table = document.getElementById("propertySelectorTable");
-let options = ["Text", "Time", "Multiple Choice", "User"]
+let schemaTable;
+let tableSchema;
+
 // Display schema in editable table using inputs
 function displaySchema(schema) {
 
-    // Lists to access created elements
-    let properties = [];
-    let propertyNames = [];
-    let propertyNamesInput = [];
-    let propertyTypes = [];
-    let propertyTypesSelect = [];
-    let propertyMultipleChoices = [];
-    let propertyMultipleChoicesInput = [];
+  projectSchema = schema;
+  schemaKeys = Object.keys(projectSchema);
+  tableSchema = {
+    "Name of Property": {
+      "type": "Text"
+    },
+    "Type of Property": {
+      "type": "Multiple Choice",
+      "options": ["Text", "Time", "Multiple Choice", "User"]
+    },
+    "Choices": {
+      "type": "Text"
+    }
+  };
+  tableSchemaKeys = Object.keys(tableSchema)
+  let tableData = [];
 
-    let keys = Object.keys(schema)
+  for (let i = 0; i < schemaKeys.length; i++) {
+    tableData.push({});
 
-    // Create elements of table and create inputs of specific type for each column
-    for (let i = 0; i < keys.length; i++) {
-        // Column 1 creation
-        properties.push(table.insertRow(-1));
-        propertyNames.push(properties[i].insertCell(0))
-        propertyNamesInput.push(document.createElement("Input"));
-        propertyNamesInput[i].setAttribute("type", "text");
-        propertyNamesInput[i].setAttribute("value", keys[i]);
-        propertyNamesInput[i].classList.add("tableinput");
-        propertyNames[i].appendChild(propertyNamesInput[i]);
+    tableData[i][tableSchemaKeys[0]] = schemaKeys[i];
 
-        // Column 2 creation
-        propertyTypes.push(properties[i].insertCell(1));
-        propertyTypesSelect.push(document.createElement("Select"));
-        for (var j = 0; j < options.length; j++) {
-            var option = document.createElement("option");
-            option.value = options[j];
-            option.text = options[j];
-            propertyTypesSelect[i].appendChild(option);
-            if (schema[keys[i]].type == options[j]) {
-                propertyTypesSelect[i].selectedIndex = j;
-            }
-        }
-        propertyTypesSelect[i].classList.add("tableinput");
-        propertyTypes[i].appendChild(propertyTypesSelect[i]);
 
-        // Column 3 creation
-        propertyMultipleChoices.push(properties[i].insertCell(2))
-        propertyMultipleChoices[i].classList.add("multipleChoices")
-        propertyMultipleChoicesInput.push(document.createElement("Input"));
-        propertyMultipleChoicesInput[i].setAttribute("type", "text");
 
-        propertyMultipleChoicesInput[i].classList.add("tableinput");
-        if (schema[keys[i]].type == "Multiple Choice") {
-            let optionsOutput = []
-            for (let j = 0; j < schema[keys[i]].options.length; j++) {
-                optionsOutput.push(schema[keys[i]].options[j]);
-            }
-            propertyMultipleChoicesInput[i].setAttribute("value", optionsOutput);
-        }
-        propertyMultipleChoices[i].appendChild(propertyMultipleChoicesInput[i]);
+    tableData[i][tableSchemaKeys[1]] = projectSchema[schemaKeys[i]].type;
+
+
+    if (projectSchema[schemaKeys[i]].type == "Multiple Choice") {
+      tableData[i][tableSchemaKeys[2]] = projectSchema[schemaKeys[i]].options;
+    } else {
+      tableData[i][tableSchemaKeys[2]] = "";
     }
 
-    // Set width of td to be size of page
-    let tdElements = document.getElementsByTagName("td");
 
-    for (let i = 0; i < tdElements.length; i++) {
-        tdElements[i].style.width = "1000px";
-    }
+
+    tableData[i][tableSchemaKeys[3]] = "";
+  }
+
+  schemaTable = new table(tableData, tableSchema)
 }
 
 // Add property to table
 function addProperty() {
-    // Vars to access created elements
-    let properties;
-    let propertyNames;
-    let propertyNamesInput;
-    let propertyTypes;
-    let propertyTypesSelect;
-    let propertyMultipleChoices;
-    let propertyMultipleChoicesInput;
-
-
-    // Column 1
-    properties = (table.insertRow(-1));
-    propertyNames = (properties.insertCell(0))
-    propertyNamesInput = (document.createElement("Input"));
-    propertyNamesInput.setAttribute("type", "text");
-    propertyNamesInput.setAttribute("value", "");
-    propertyNamesInput.classList.add("tableinput");
-    propertyNames.appendChild(propertyNamesInput);
-
-    // Column 2
-    propertyTypes = (properties.insertCell(1));
-    propertyTypesSelect = (document.createElement("Select"));
-    for (var j = 0; j < options.length; j++) {
-        var option = document.createElement("option");
-        option.value = options[j];
-        option.text = options[j];
-        propertyTypesSelect.appendChild(option);
+  newRowTableSchema = {
+    "Name of Property": {
+      "type": "Text"
+    },
+    "Type of Property": {
+      "type": "Multiple Choice",
+      "options": ["Text", "Time", "Multiple Choice", "User"]
+    },
+    "Choices": {
+      "type": "Text"
     }
-    propertyTypesSelect.selectedIndex = 0;
-    propertyTypesSelect.classList.add("tableinput");
-    propertyTypes.appendChild(propertyTypesSelect);
+  };
+  blankTableSchema = {};
+  for (let i = 0; i < tableSchemaKeys.length; i++) {
+    blankTableSchema[tableSchemaKeys[i]] = "";
+  }
 
-    // Column 3
-    propertyMultipleChoices = (properties.insertCell(2))
-    propertyMultipleChoices.classList.add("multipleChoices")
-    propertyMultipleChoicesInput = (document.createElement("Input"));
-    propertyMultipleChoicesInput.setAttribute("type", "text");
-    propertyMultipleChoicesInput.classList.add("tableinput");
-    propertyMultipleChoicesInput.setAttribute("value", "");
-    propertyMultipleChoices.appendChild(propertyMultipleChoicesInput);
+  schemaTable.addRow(blankTableSchema, newRowTableSchema)
 
-
+ 
 }
 
 // Remove last property from table
 function removeProperty() {
-    table.deleteRow(-1);
+  schemaTable.removeRow();
 }
 
 // Submit project to server to be created
 function createProject() {
-
-    projectName = document.getElementById("titleInput").value;
-    let schema = {};
-    schema["_id"] = {
-        "type": "_id"
+  let schemaData = schemaTable.exportTableAsText(tableSchema);
+  projectName = document.getElementById("titleInput").value;
+  let updatedSchema = {};
+  updatedSchema._id = {"type":"_id"};
+  // Format multiple choice schema
+  for (let i = 0; i < schemaData.length; i++) {
+    if (schemaData[i]["Type of Property"] == "Multiple Choice") {
+      updatedSchema[schemaData[i]["Name of Property"]] = {
+        "type": schemaData[i]["Type of Property"],
+        "options": schemaData[i]["Choices"].split(',')
+    };
+    } else {
+      updatedSchema[schemaData[i]["Name of Property"]] = {
+        "type": schemaData[i]["Type of Property"]
+      };
     }
-    for (let i = 0, row; row = table.rows[i]; i++) {
-        let rowData = row.cells;
-        if (rowData[0].children.length > 0) {
 
-            schema[rowData[0].children[0].value] = {
-                "type": "text"
-            };
-            schema[rowData[0].children[0].value].type = rowData[1].children[0].value;
-            if (rowData[1].children[0].value == "Multiple Choice") {
-                let options = rowData[2].children[0].value.split(",");
-                schema[rowData[0].children[0].value].options = options;
-            }
+  }
 
-        }
-
-    }
-    console.log(JSON.stringify(schema))
-
-    // Send new project to server
-    fetch("/createNewProject", {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'access-control-allow-origin': '*'
-            },
-            body: JSON.stringify({
-                "projectName": projectName,
-                "schema": schema
-            })
-        })
-        .then(response => response.text())
-        .then(data => redirectToProject(data));
+  // Send new project to server
+  fetch("/createNewProject", {
+    method: 'POST',
+    headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'access-control-allow-origin': '*'
+    },
+    body: JSON.stringify({
+        "projectName": projectName,
+        "schema": updatedSchema
+    })
+  })
+  .then(response => response.text())
+  .then(data => redirectToProject(data));
 
 }
 

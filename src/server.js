@@ -77,7 +77,7 @@ async function startExpressServer() {
                 delete schemaFile[oldProjectName];
             }
 
-            // Edit schema
+            // Output text saying we are editing schema
             console.log("Editing " + newProjectName + " Schema")
             res.send("Editing Schema");
 
@@ -86,6 +86,8 @@ async function startExpressServer() {
             schema["_id"] = {
                 "type": "_id"
             };
+
+            // Delete unused id element
             delete schemaFile[newProjectName]["_id"];
             let oldSchema = schemaFile[newProjectName];
             let oldSchemaKeys = Object.keys(oldSchema);
@@ -213,7 +215,7 @@ async function startExpressServer() {
             res.send("Updating Project")
 
             let updatedTime = new Date(Date.now());
-            editEditedTime(req.body.projectName, updatedTime);
+            await editEditedTime(req.body.projectName, updatedTime);
 
             console.log("Updating Project: " + JSON.stringify(req.body.projectName));
             project = req.body.project;
@@ -222,7 +224,7 @@ async function startExpressServer() {
                 if (project[i]._id == "Not In Database") {
                     // Send to database if new property
                     delete project[i]._id;
-                    createNewIssue(req.body.projectName, project[i])
+                    await createNewIssue(req.body.projectName, project[i])
                 } else {
                     // Send to database if old property
                     let ID = project[i]._id;
@@ -230,13 +232,13 @@ async function startExpressServer() {
                     let keys = Object.keys(project[i]);
                     for (let j = 0; j < keys.length; j++) {
 
-                        editProperty(req.body.projectName, ID, keys[j], project[i][keys[j]]);
+                        await editProperty(req.body.projectName, ID, keys[j], project[i][keys[j]]);
                     }
 
                 }
             }
             // Delete any deleted issues
-            deleteIssues(req.body.issueIDsToDelete, req.body.projectName);
+            await deleteIssues(req.body.issueIDsToDelete, req.body.projectName);
         } catch (err) {
             console.log(err);
             res.send({

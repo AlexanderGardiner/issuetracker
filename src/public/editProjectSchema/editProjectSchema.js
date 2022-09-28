@@ -26,6 +26,7 @@ let schemaKeys;
 let tableSchema;
 let tableSchemaKeys;
 let schemaIDsToDelete = [];
+
 // Display schema in editable table using inputs
 function displaySchema(schema) {
   projectSchema = schema;
