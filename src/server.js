@@ -11,12 +11,13 @@ const MongoClient = require('mongodb').MongoClient;
 const ObjectId = require('mongodb').ObjectId;
 const fs = require('fs');
 
-// Change working directory
+// Change working directory 
 process.chdir("src");;
 
 // Vars for mongodb database
 var url = "mongodb+srv://Main:8dmfv2tXNor2HG9T@issuetracker.9w0hzlx.mongodb.net/?retryWrites=true&w=majority";
 var MongoDatabase;
+
 
 // Start express server
 async function startExpressServer() {
