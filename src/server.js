@@ -63,7 +63,7 @@ async function startExpressServer() {
     });
 
     // Edit schema of project 
-    app.post('/editProjectSchema', function (req, res) {
+    app.post('/editProjectSchema', async function (req, res) {
         try {
             // Define vars
             let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
@@ -72,7 +72,7 @@ async function startExpressServer() {
 
             // Rename project if necessary
             if (oldProjectName != newProjectName) {
-                MongoDatabase.db("IssueTracker").collection(oldProjectName).rename(newProjectName);
+                await MongoDatabase.db("IssueTracker").collection(oldProjectName).rename(newProjectName);
                 schemaFile[newProjectName] = schemaFile[oldProjectName];
                 delete schemaFile[oldProjectName];
             }
@@ -117,16 +117,28 @@ async function startExpressServer() {
                 }
             }
 
+            // Delete properties in database if required
+            if (req.body.deleteOldProperties == true) {
+                for (let j = 0; j < req.body.schemaIDsToDelete.length; j++) {
+                    schemaIDToDelete = req.body.schemaIDsToDelete[j];
+                    await MongoDatabase.db("IssueTracker").collection(newProjectName).updateMany({}, {
+                        $unset: {
+                            [schemaIDToDelete]: ""
+                        }
+                    });
+                }
+            }
+
             // Set schema if it exists
             if (schemaFile.hasOwnProperty(newProjectName)) {
-                setSchema(newProjectName, schema);
+                await setSchema(newProjectName, schema);
             }
 
             // Rename properties in database if required
             for (let j = 0; j < oldSchemaKeys.length; j++) {
                 if (j < submittedSchemaKeys.length) {
                     if (oldSchemaKeys[j] != submittedSchemaKeys[j]) {
-                        MongoDatabase.db("IssueTracker").collection(newProjectName).updateMany({}, {
+                        await MongoDatabase.db("IssueTracker").collection(newProjectName).updateMany({}, {
                             $rename: {
                                 [oldSchemaKeys[j]]: submittedSchemaKeys[j]
                             }
@@ -135,17 +147,7 @@ async function startExpressServer() {
                 }
             }
 
-            // Delete properties in database if required
-            if (req.body.deleteOldProperties == true) {
-                for (let j = 0; j < req.body.schemaIDsToDelete.length; j++) {
-                    schemaIDToDelete = req.body.schemaIDsToDelete[j];
-                    MongoDatabase.db("IssueTracker").collection(newProjectName).updateMany({}, {
-                        $unset: {
-                            [schemaIDToDelete]: ""
-                        }
-                    });
-                }
-            }
+            
 
         } catch (err) {
             console.log(err);
