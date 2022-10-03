@@ -111,8 +111,12 @@ class table {
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
         this.cellChildren[i][j].innerHTML = tableData[this.schemaKeys[j]];
 
-      }
+      } else if (this.schemaDataTypes[j] == "File") {
+        this.cellChildren[i].push(document.createElement("input"));
+        this.cellChildren[i][j].type = "file";
+        this.cells[i][j].appendChild(this.cellChildren[i][j]);
 
+      }
       this.cellChildren[i][j].classList.add("tableCellChild");
       this.cells[i][j].style.width = "1000px";
 
@@ -145,21 +149,24 @@ class table {
 
   }
 
-  exportTableAsText(schema) {
+  exportTable(schema) {
     this.schemaKeys = Object.keys(schema);
     this.project = [];
     for (let i = 1; i < this.cellChildren.length; i++) {
       this.project.push({});
       for (let j = 0; j < this.cellChildren[i].length; j++) {
-
-        // value not correct
-
-        this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].value;
+        if (this.schemaDataTypes[j]=="File") {
+          this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].files[0].name;
+          console.log(this.cellChildren[i][j].files[0])
+        } else {
+          this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].value;
+        }
+        
+        
 
       }
     }
 
     return this.project;
-    // Need to add table export function
   }
 }

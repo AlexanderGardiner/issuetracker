@@ -37,7 +37,7 @@ function displaySchema(schema) {
     },
     "Type of Property": {
       "type": "Multiple Choice ReadOnly",
-      "options": ["Text", "Time", "Multiple Choice", "User"]
+      "options": ["Text", "Time", "Multiple Choice", "User", "File"]
     },
     "Prexisting Choices": {
       "type": "ReadOnlyText"
@@ -82,7 +82,7 @@ function addProperty() {
     },
     "Type of Property": {
       "type": "Multiple Choice",
-      "options": ["Text", "Multiple Choice", "User"]
+      "options": ["Text", "Multiple Choice", "User","File"]
     },
     "Prexisting Choices": {
       "type": "ReadOnlyText"
@@ -111,7 +111,7 @@ function removeProperty() {
 // Submit project to server to be created
 function updateSchema() {
   let deleteOldProperties = confirm("Delete old properties (yes/no)?")
-  let schemaData = schemaTable.exportTableAsText(tableSchema);
+  let schemaData = schemaTable.exportTable(tableSchema);
   let updatedSchema = {};
 
   // Format multiple choice schema

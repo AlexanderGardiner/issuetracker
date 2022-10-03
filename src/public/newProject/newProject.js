@@ -27,7 +27,7 @@ function displaySchema(schema) {
     },
     "Type of Property": {
       "type": "Multiple Choice",
-      "options": ["Text", "Time", "Multiple Choice", "User"]
+      "options": ["Text", "Time", "Multiple Choice", "User","File"]
     },
     "Choices": {
       "type": "Text"
@@ -68,7 +68,7 @@ function addProperty() {
     },
     "Type of Property": {
       "type": "Multiple Choice",
-      "options": ["Text", "Time", "Multiple Choice", "User"]
+      "options": ["Text", "Time", "Multiple Choice", "User","File"]
     },
     "Choices": {
       "type": "Text"
@@ -91,7 +91,7 @@ function removeProperty() {
 
 // Submit project to server to be created
 function createProject() {
-  let schemaData = schemaTable.exportTableAsText(tableSchema);
+  let schemaData = schemaTable.exportTable(tableSchema);
   projectName = document.getElementById("titleInput").value;
   let updatedSchema = {};
   updatedSchema._id = {"type":"_id"};
@@ -101,7 +101,8 @@ function createProject() {
       updatedSchema[schemaData[i]["Name of Property"]] = {
         "type": schemaData[i]["Type of Property"],
         "options": schemaData[i]["Choices"].split(',')
-    };
+      };
+      
     } else {
       updatedSchema[schemaData[i]["Name of Property"]] = {
         "type": schemaData[i]["Type of Property"]

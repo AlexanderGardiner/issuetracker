@@ -26,7 +26,6 @@ let project;
 let issueIDsToDelete = [];
 // Display project in editable table
 function displayProject(data) {
-  console.log(data.project)
   document.getElementById("timeEdited").innerHTML = "Time Edited: " + new Date(data.project[0].projectTimeEdited);
   document.getElementById("title").innerHTML = projectName;
   project = data.project;
@@ -52,6 +51,8 @@ function addIssue() {
       blankData[schemaKeys[i]] = ""
     } else if (schema[schemaKeys[i]].type == "User") {
       blankData[schemaKeys[i]] = ""
+    } else if (schema[schemaKeys[i]].type == "File") {
+      blankData[schemaKeys[i]] = ""
     }
 
   }
@@ -66,8 +67,7 @@ function removeIssue() {
 
 function updateProject() {
 
-  let project = projectTable.exportTableAsText(schema);
-  console.log(project)
+  let project = projectTable.exportTable(schema);
   // Send data to server
 
 
@@ -91,7 +91,7 @@ function updateProject() {
 }
 
 function reloadPage(data) {
-  window.location.reload(true);
+  //window.location.reload(true);
 }
 
 function editSchema() {
