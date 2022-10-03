@@ -91,7 +91,7 @@ function updateProject() {
 }
 
 function reloadPage(data) {
-  //window.location.reload(true);
+  window.location.reload(true);
 }
 
 function editSchema() {
