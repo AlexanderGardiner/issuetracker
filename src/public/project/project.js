@@ -24,12 +24,14 @@ let schemaKeys;
 let schema;
 let project;
 let issueIDsToDelete = [];
+let projectFilesToDelete = [];
 // Display project in editable table
 function displayProject(data) {
   document.getElementById("timeEdited").innerHTML = "Time Edited: " + new Date(data.project[0].projectTimeEdited);
   document.getElementById("title").innerHTML = projectName;
   project = data.project;
   schema = data.schema;
+  schemaKeys = Object.keys(schema);
   // Need to add users
   project.shift();
 
@@ -39,7 +41,7 @@ function displayProject(data) {
 function addIssue() {
   // Add issue
   let blankData = {}
-  schemaKeys = Object.keys(schema);
+  
   for (let i = 0; i < schemaKeys.length; i++) {
     if (schema[schemaKeys[i]].type == "_id") {
       blankData[schemaKeys[i]] = "Not In Database";
@@ -62,16 +64,20 @@ function addIssue() {
 
 function removeIssue() {
   issueIDsToDelete.push(projectTable.cellChildren[projectTable.cellChildren.length - 1][0].value);
+  for (let i=0;i <projectTable.cellChildren[projectTable.cellChildren.length - 1].length;i++) {
+    if (schema[schemaKeys[i]].type=="File" && issueIDsToDelete[issueIDsToDelete.length-1]!="Not In Database") {
+      projectFilesToDelete.push(projectTable.cellChildren[projectTable.cellChildren.length - 1][i].files[0].name)
+    }  
+  }
   projectTable.removeRow();
 }
 
 function updateProject() {
-
+  console.log(projectFilesToDelete)
   let project = projectTable.exportTable(schema);
   // Send data to server
   let files = projectTable.files;
   let fileNames = projectTable.fileNames;
-  console.log(files);
   var fd = new FormData();
   for (let i=0;i<files.length;i++) {
     fd.append(fileNames[i], files[i]);
@@ -91,12 +97,16 @@ function updateProject() {
       })
     }).then((response) => response.text())
     .then((data) => reloadPage(data));
+  if (files.length>0) {
+    fetch("/deleteProjectFiles?"+ new URLSearchParams({
+      "projectName": projectName,
+    }), {
+      method: 'POST',
+      body: fd
   
-  fetch("/updateProjectFiles", {
-    method: 'POST',
-    body: fd
-
-  })
+    })
+  }
+  
 
 
 }

@@ -199,6 +199,7 @@ async function startExpressServer() {
             let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
             let schema = schemaFile[req.body.projectName];
             let project = await getProject(req.body.projectName);
+
             res.send(JSON.stringify({
                 "project": project,
                 "schema": schema
@@ -246,14 +247,7 @@ async function startExpressServer() {
             await deleteIssues(req.body.issueIDsToDelete, req.body.projectName);
 
 
-            let files = req.files;
-            if (files!==undefined) {
-              let fileKeys = Object.keys(files);
-              for (let i=0; i<fileKeys.length;i++) {
-                console.log(files[fileKeys[i]])
-                files[fileKeys[i]].mv('./files/' + files[fileKeys[i]].name);
-              }
-            }
+
             
             
         } catch (err) {
@@ -270,8 +264,13 @@ async function startExpressServer() {
       try {
         let files = req.files;
         let fileKeys = Object.keys(files);
+        let projectName = req.query.projectName;
+        if (!fs.existsSync("./files/"+projectName)){
+          fs.mkdirSync("./files/"+projectName);
+        }
+        let path = './files/' +projectName +"/"
         for (let i=0;i<fileKeys.length;i++) {
-          files[fileKeys[i]].mv('./files/' + files[fileKeys[i]].name);
+          files[fileKeys[i]].mv(path + files[fileKeys[i]].name);
         }
         
 
@@ -283,6 +282,29 @@ async function startExpressServer() {
       }
 
 
+
+    });
+
+    app.post('/deleteProjectFiles', async function (req, res) {
+        try {
+          let files = req.files;
+          let fileKeys = Object.keys(files);
+          let projectName = req.query.projectName;
+          let path = './files/' +projectName +"/"
+          for (let i=0;i<fileKeys.length;i++) {
+            fs.unlinkSync(path+files[fileKeys[i]].name, (err => {
+            if (err) console.log(err)}));
+          }
+          
+  
+        } catch (err) {
+            console.log(err);
+            res.send({
+                "Error": err
+            });
+        }
+  
+  
 
     });
     app.post('/deleteProject', async function (req, res) {
