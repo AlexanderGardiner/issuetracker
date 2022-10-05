@@ -156,8 +156,12 @@ class table {
       this.project.push({});
       for (let j = 0; j < this.cellChildren[i].length; j++) {
         if (this.schemaDataTypes[j]=="File") {
-          this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].files[0].name;
-          console.log(this.cellChildren[i][j].files[0])
+          if (this.cellChildren[i][j].files[0]!==undefined) {
+            this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].files[0].name;
+          } else {
+            this.project[i - 1][this.schemaKeys[j]] = "";
+          }
+          
         } else {
           this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].value;
         }

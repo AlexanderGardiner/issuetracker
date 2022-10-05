@@ -133,7 +133,7 @@ async function startExpressServer() {
 
             // Set schema if it exists
             if (schemaFile.hasOwnProperty(newProjectName)) {
-                await setSchema(newProjectName, schema);
+                setSchema(newProjectName, schema);
             }
 
             // Rename properties in database if required
