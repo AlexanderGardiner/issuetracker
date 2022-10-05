@@ -199,10 +199,9 @@ async function startExpressServer() {
             let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
             let schema = schemaFile[req.body.projectName];
             let project = await getProject(req.body.projectName);
-
             res.send(JSON.stringify({
                 "project": project,
-                "schema": schema
+                "schema": schema,
             }));
         } catch (err) {
             console.log(err);
@@ -213,6 +212,24 @@ async function startExpressServer() {
 
 
     });
+
+
+    // Get project data from schema and from database
+    app.post('/getProjectFile', async function (req, res) {
+        try {
+            console.log("Getting Project File: " + req.body.fileName+" from "+req.body.projectName);
+            res.sendFile(__dirname +"/files/"+req.body.projectName+"/"+req.body.fileName);
+        } catch (err) {
+            console.log(err);
+            res.send({
+                "Error": err
+            });
+        }
+
+
+    });
+
+        
 
     // Update project issues
     app.post('/updateProject', async function (req, res) {
@@ -376,6 +393,7 @@ async function getProject(projectName) {
     let project = await MongoDatabase.db("IssueTracker").collection(projectName).find().toArray();
     return project
 }
+
 
 // Create project in database
 async function createNewProject(projectName) {

@@ -19,14 +19,20 @@ fetch("/getProject", {
   .then(response => response.json())
   .then(data => displayProject(data));
 
+
+
 let projectTable;
 let schemaKeys;
 let schema;
 let project;
 let issueIDsToDelete = [];
 let projectFilesToDelete = [];
+
+
 // Display project in editable table
 function displayProject(data) {
+  
+
   document.getElementById("timeEdited").innerHTML = "Time Edited: " + new Date(data.project[0].projectTimeEdited);
   document.getElementById("title").innerHTML = projectName;
   project = data.project;
@@ -64,16 +70,11 @@ function addIssue() {
 
 function removeIssue() {
   issueIDsToDelete.push(projectTable.cellChildren[projectTable.cellChildren.length - 1][0].value);
-  for (let i=0;i <projectTable.cellChildren[projectTable.cellChildren.length - 1].length;i++) {
-    if (schema[schemaKeys[i]].type=="File" && issueIDsToDelete[issueIDsToDelete.length-1]!="Not In Database") {
-      projectFilesToDelete.push(projectTable.cellChildren[projectTable.cellChildren.length - 1][i].files[0].name)
-    }  
-  }
+
   projectTable.removeRow();
 }
 
 function updateProject() {
-  console.log(projectFilesToDelete)
   let project = projectTable.exportTable(schema);
   // Send data to server
   let files = projectTable.files;
@@ -98,7 +99,7 @@ function updateProject() {
     }).then((response) => response.text())
     .then((data) => reloadPage(data));
   if (files.length>0) {
-    fetch("/deleteProjectFiles?"+ new URLSearchParams({
+    fetch("/updateProjectFiles?"+ new URLSearchParams({
       "projectName": projectName,
     }), {
       method: 'POST',
@@ -111,8 +112,39 @@ function updateProject() {
 
 }
 
+function requestFile(fileName) {
+  fetch("/getProjectFile", {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'access-control-allow-origin': '*'
+    },
+    body: JSON.stringify({
+      "projectName": projectName,
+      "fileName":fileName
+    })
+  })
+.then(response => response.blob())
+.then(data => downloadFile(data));
+}
+function downloadFile(blob) {
+  const newBlob = new Blob([blob]);
+  
+  const blobUrl = window.URL.createObjectURL(newBlob);
+  
+  const link = document.createElement('a');
+  link.href = blobUrl;
+  link.setAttribute('download', `${"test"}.${"txt"}`);
+  document.body.appendChild(link);
+  link.click();
+  link.parentNode.removeChild(link);
+  // clean up Url
+  window.URL.revokeObjectURL(blobUrl);
+}
+
 function reloadPage(data) {
-  //window.location.reload(true);
+  window.location.reload(true);
 }
 
 function editSchema() {

@@ -112,8 +112,13 @@ class table {
         this.cellChildren[i][j].innerHTML = tableData[this.schemaKeys[j]];
 
       } else if (this.schemaDataTypes[j] == "File") {
-        this.cellChildren[i].push(document.createElement("input"));
-        this.cellChildren[i][j].type = "file";
+        this.cellChildren[i].push(document.createElement("div"));
+        this.cellChildren[i][j].appendChild(document.createElement("input"))
+        this.cellChildren[i][j].appendChild(document.createElement("button"))
+        this.cellChildren[i][j].children[0].type = "file";
+        let fileToRequest = tableData[this.schemaKeys[j]];
+        this.cellChildren[i][j].children[1].onclick = function(){requestFile(fileToRequest)};;
+        this.cellChildren[i][j].children[1].innerHTML = "Download " + tableData[this.schemaKeys[j]];
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
 
       }
@@ -158,12 +163,15 @@ class table {
       this.project.push({});
       for (let j = 0; j < this.cellChildren[i].length; j++) {
         if (this.schemaDataTypes[j]=="File") {
-          if (this.cellChildren[i][j].files[0]!==undefined) {
-            this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].files[0].name;
-            this.files.push(this.cellChildren[i][j].files[0]);
-            this.fileNames.push(this.cellChildren[i][j].files[0].name);
+          if (this.cellChildren[i][j].children[0].files[0]!==undefined) {
+            this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].children[0].files[0].name;
+            this.files.push(this.cellChildren[i][j].children[0].files[0]);
+            console.log(this.cellChildren[i][j].children[0].files[0].name)
+            this.fileNames.push(this.cellChildren[i][j].children[0].files[0].name);
+
+            
           } else {
-            this.project[i - 1][this.schemaKeys[j]] = "";
+            this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].children[1].innerHTML.substring(9);
           }
           
         } else {
