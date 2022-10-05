@@ -10,6 +10,7 @@ const bodyParser = require('body-parser')
 const MongoClient = require('mongodb').MongoClient;
 const ObjectId = require('mongodb').ObjectId;
 const fs = require('fs');
+const fileupload = require("express-fileupload");
 
 
 // Change working directory 
@@ -27,6 +28,7 @@ async function startExpressServer() {
     app.use(bodyParser.urlencoded({
         extended: true
     }));
+    app.use(fileupload());
     app.use(bodyParser.json());
     app.use(express.static(__dirname + '/public'));
 
@@ -214,7 +216,7 @@ async function startExpressServer() {
     // Update project issues
     app.post('/updateProject', async function (req, res) {
         try {
-
+            
             res.send("Updating Project")
 
             let updatedTime = new Date(Date.now());
@@ -242,6 +244,18 @@ async function startExpressServer() {
             }
             // Delete any deleted issues
             await deleteIssues(req.body.issueIDsToDelete, req.body.projectName);
+
+
+            let files = req.files;
+            if (files!==undefined) {
+              let fileKeys = Object.keys(files);
+              for (let i=0; i<fileKeys.length;i++) {
+                console.log(files[fileKeys[i]])
+                files[fileKeys[i]].mv('./files/' + files[fileKeys[i]].name);
+              }
+            }
+            
+            
         } catch (err) {
             console.log(err);
             res.send({
@@ -252,7 +266,25 @@ async function startExpressServer() {
 
 
     });
+    app.post('/updateProjectFiles', async function (req, res) {
+      try {
+        let files = req.files;
+        let fileKeys = Object.keys(files);
+        for (let i=0;i<fileKeys.length;i++) {
+          files[fileKeys[i]].mv('./files/' + files[fileKeys[i]].name);
+        }
+        
 
+      } catch (err) {
+          console.log(err);
+          res.send({
+              "Error": err
+          });
+      }
+
+
+
+    });
     app.post('/deleteProject', async function (req, res) {
         try {
             await deleteProject(req.body.projectName);

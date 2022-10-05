@@ -69,8 +69,14 @@ function updateProject() {
 
   let project = projectTable.exportTable(schema);
   // Send data to server
-
-
+  let files = projectTable.files;
+  let fileNames = projectTable.fileNames;
+  console.log(files);
+  var fd = new FormData();
+  for (let i=0;i<files.length;i++) {
+    fd.append(fileNames[i], files[i]);
+  }
+  
   fetch("/updateProject", {
       method: 'POST',
       headers: {
@@ -85,13 +91,18 @@ function updateProject() {
       })
     }).then((response) => response.text())
     .then((data) => reloadPage(data));
+  
+  fetch("/updateProjectFiles", {
+    method: 'POST',
+    body: fd
 
+  })
 
 
 }
 
 function reloadPage(data) {
-  window.location.reload(true);
+  //window.location.reload(true);
 }
 
 function editSchema() {

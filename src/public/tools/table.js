@@ -152,12 +152,16 @@ class table {
   exportTable(schema) {
     this.schemaKeys = Object.keys(schema);
     this.project = [];
+    this.files = [];
+    this.fileNames = [];
     for (let i = 1; i < this.cellChildren.length; i++) {
       this.project.push({});
       for (let j = 0; j < this.cellChildren[i].length; j++) {
         if (this.schemaDataTypes[j]=="File") {
           if (this.cellChildren[i][j].files[0]!==undefined) {
             this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].files[0].name;
+            this.files.push(this.cellChildren[i][j].files[0]);
+            this.fileNames.push(this.cellChildren[i][j].files[0].name);
           } else {
             this.project[i - 1][this.schemaKeys[j]] = "";
           }
