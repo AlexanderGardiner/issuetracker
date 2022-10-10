@@ -79,6 +79,9 @@ async function startExpressServer() {
                 await MongoDatabase.db("IssueTracker").collection(oldProjectName).rename(newProjectName);
                 schemaFile[newProjectName] = schemaFile[oldProjectName];
                 delete schemaFile[oldProjectName];
+                fs.rename(('./files/'+oldProjectName), ('./files/'+newProjectName), () => {
+                  console.log("File Renamed");
+                });
             }
 
             // Output text saying we are editing schema

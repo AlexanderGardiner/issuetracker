@@ -1,5 +1,5 @@
 table {
-  border: 1px solid black;
+  border: 5px solid #606566;
   border-collapse: collapse;
   width: 99vw;
   margin-left: auto;
@@ -7,21 +7,23 @@ table {
   margin-top: 10px;
 }
 
-td,
-th,
-tr {
-  border: 1px solid black;
+thead {
+  height: 2em;
+  border: 2px solid #d4d4d4;
   border-collapse: collapse;
   padding: 0px;
   width: auto;
+
 }
 
+.selectCell {
+  height: 4em;
+}
 .tableCellChild {
 
   font-family: Arial, Helvetica, sans-serif;
   font-size: 20px;
   width: 90%;
-  height: 3em;
   border: none;
   box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -29,7 +31,17 @@ tr {
   margin: 5px;
 }
 
+
+.textAreaCell {
+  height:10em;
+}
 .tableHeaderCellChild {
   font-size: 20px;
   height: 2em;
+}
+
+.tableCell {
+
+  width: 1000px;
+  height: 10em;
 }

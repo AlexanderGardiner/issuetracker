@@ -27,7 +27,7 @@ let schema;
 let project;
 let issueIDsToDelete = [];
 let projectFilesToDelete = [];
-
+let downloadedFileName;
 
 // Display project in editable table
 function displayProject(data) {
@@ -69,7 +69,10 @@ function addIssue() {
 }
 
 function removeIssue() {
-  issueIDsToDelete.push(projectTable.cellChildren[projectTable.cellChildren.length - 1][0].value);
+  if (projectTable.cellChildren.length>0) {
+    issueIDsToDelete.push(projectTable.cellChildren[projectTable.cellChildren.length - 1][0].value);
+  }
+  
 
   projectTable.removeRow();
 }
@@ -113,6 +116,7 @@ function updateProject() {
 }
 
 function requestFile(fileName) {
+  downloadedFileName = fileName;
   fetch("/getProjectFile", {
     method: 'POST',
     headers: {
@@ -129,13 +133,15 @@ function requestFile(fileName) {
 .then(data => downloadFile(data));
 }
 function downloadFile(blob) {
+
   const newBlob = new Blob([blob]);
   
   const blobUrl = window.URL.createObjectURL(newBlob);
-  
+
   const link = document.createElement('a');
   link.href = blobUrl;
-  link.setAttribute('download', `${"test"}.${"txt"}`);
+
+  link.setAttribute("download",downloadedFileName);
   document.body.appendChild(link);
   link.click();
   link.parentNode.removeChild(link);
