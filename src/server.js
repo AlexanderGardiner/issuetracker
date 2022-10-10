@@ -79,6 +79,9 @@ async function startExpressServer() {
                 await MongoDatabase.db("IssueTracker").collection(oldProjectName).rename(newProjectName);
                 schemaFile[newProjectName] = schemaFile[oldProjectName];
                 delete schemaFile[oldProjectName];
+                fs.rename(('./files/'+oldProjectName), ('./files/'+newProjectName), () => {
+                  console.log("File Renamed");
+                });
             }
 
             // Output text saying we are editing schema
@@ -201,7 +204,7 @@ async function startExpressServer() {
             let project = await getProject(req.body.projectName);
             res.send(JSON.stringify({
                 "project": project,
-                "schema": schema
+                "schema": schema,
             }));
         } catch (err) {
             console.log(err);
@@ -212,6 +215,24 @@ async function startExpressServer() {
 
 
     });
+
+
+    // Get project data from schema and from database
+    app.post('/getProjectFile', async function (req, res) {
+        try {
+            console.log("Getting Project File: " + req.body.fileName+" from "+req.body.projectName);
+            res.sendFile(__dirname +"/files/"+req.body.projectName+"/"+req.body.fileName);
+        } catch (err) {
+            console.log(err);
+            res.send({
+                "Error": err
+            });
+        }
+
+
+    });
+
+        
 
     // Update project issues
     app.post('/updateProject', async function (req, res) {
@@ -246,14 +267,7 @@ async function startExpressServer() {
             await deleteIssues(req.body.issueIDsToDelete, req.body.projectName);
 
 
-            let files = req.files;
-            if (files!==undefined) {
-              let fileKeys = Object.keys(files);
-              for (let i=0; i<fileKeys.length;i++) {
-                console.log(files[fileKeys[i]])
-                files[fileKeys[i]].mv('./files/' + files[fileKeys[i]].name);
-              }
-            }
+
             
             
         } catch (err) {
@@ -270,8 +284,13 @@ async function startExpressServer() {
       try {
         let files = req.files;
         let fileKeys = Object.keys(files);
+        let projectName = req.query.projectName;
+        if (!fs.existsSync("./files/"+projectName)){
+          fs.mkdirSync("./files/"+projectName);
+        }
+        let path = './files/' +projectName +"/"
         for (let i=0;i<fileKeys.length;i++) {
-          files[fileKeys[i]].mv('./files/' + files[fileKeys[i]].name);
+          files[fileKeys[i]].mv(path + files[fileKeys[i]].name);
         }
         
 
@@ -283,6 +302,29 @@ async function startExpressServer() {
       }
 
 
+
+    });
+
+    app.post('/deleteProjectFiles', async function (req, res) {
+        try {
+          let files = req.files;
+          let fileKeys = Object.keys(files);
+          let projectName = req.query.projectName;
+          let path = './files/' +projectName +"/"
+          for (let i=0;i<fileKeys.length;i++) {
+            fs.unlinkSync(path+files[fileKeys[i]].name, (err => {
+            if (err) console.log(err)}));
+          }
+          
+  
+        } catch (err) {
+            console.log(err);
+            res.send({
+                "Error": err
+            });
+        }
+  
+  
 
     });
     app.post('/deleteProject', async function (req, res) {
@@ -354,6 +396,7 @@ async function getProject(projectName) {
     let project = await MongoDatabase.db("IssueTracker").collection(projectName).find().toArray();
     return project
 }
+
 
 // Create project in database
 async function createNewProject(projectName) {

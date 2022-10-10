@@ -47,6 +47,13 @@
     font-size: 15px;
 }
 
+img {
+  margin-top:5px;
+  height: 7.5em; 
+  width: auto;
+  object-fit: contain
+}
+
 .newProjectButton {
     margin: 0 auto;
     display: block;
@@ -83,51 +90,6 @@
     margin-left: auto;
     margin-right: auto;
     margin-top: 10px;
-}
-
-table,
-th,
-td {
-    border: 1px solid black;
-    border-collapse: collapse;
-}
-
-td,
-th,
-tr {
-    padding: 0px;
-    width: auto;
-}
-
-
-
-
-.tableinput {
-    font-family: Arial, Helvetica, sans-serif;
-    margin: 5px;
-    font-size: 20px;
-    width: 90%;
-    height: 3em;
-    border: none;
-    box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-}
-
-.tabletextarea {
-    font-family: Arial, Helvetica, sans-serif;
-    margin: 5px;
-    font-size: 20px;
-    width: 90%;
-    height: 3em;
-    border: none;
-    box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-}
-
-.multipleChoices {
-    width: 500px;
 }
 
 #projectDiv {
