@@ -100,7 +100,14 @@ function updateProject() {
         "issueIDsToDelete": issueIDsToDelete
       })
     }).then((response) => response.text())
-    .then((data) => reloadPage(data));
+    .then((data) => updateProjectFiles(projectName,files,fd));
+  
+  
+
+
+}
+
+function updateProjectFiles(projectName,files,fd) {
   if (files.length>0) {
     fetch("/updateProjectFiles?"+ new URLSearchParams({
       "projectName": projectName,
@@ -108,11 +115,11 @@ function updateProject() {
       method: 'POST',
       body: fd
   
-    })
+    }).then((response) => response.text())
+    .then((data) => reloadPage(data));
+  } else {
+    reloadPage("");
   }
-  
-
-
 }
 
 function requestFile(fileName) {
@@ -133,19 +140,26 @@ function requestFile(fileName) {
 .then(data => downloadFile(data));
 }
 function downloadFile(blob) {
-
-  const newBlob = new Blob([blob]);
   
-  const blobUrl = window.URL.createObjectURL(newBlob);
+  const newBlob = new Blob([blob]);
 
+  const blobUrl = window.URL.createObjectURL(newBlob);
+ 
   const link = document.createElement('a');
   link.href = blobUrl;
 
   link.setAttribute("download",downloadedFileName);
   document.body.appendChild(link);
-  link.click();
+  
+  link.dispatchEvent(
+    new MouseEvent('click', { 
+      bubbles: true, 
+      cancelable: true, 
+      view: window 
+    })
+  );
+
   link.parentNode.removeChild(link);
-  // clean up Url
   window.URL.revokeObjectURL(blobUrl);
 }
 

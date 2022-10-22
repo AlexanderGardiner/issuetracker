@@ -102,7 +102,7 @@ function addProperty() {
 
 // Remove last property from table
 function removeProperty() {
-  if (schemaTable.cellChildren.length>0) {
+  if (schemaTable.cellChildren.length>0 && schemaTable.cellChildren[schemaTable.cellChildren.length - 1][1].disabled==true) {
     schemaIDsToDelete.push(schemaTable.cellChildren[schemaTable.cellChildren.length - 1][0].value);
   }
   

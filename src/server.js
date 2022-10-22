@@ -282,18 +282,25 @@ async function startExpressServer() {
     });
     app.post('/updateProjectFiles', async function (req, res) {
       try {
-        let files = req.files;
-        let fileKeys = Object.keys(files);
+        
+        
+        
         let projectName = req.query.projectName;
         if (!fs.existsSync("./files/"+projectName)){
           fs.mkdirSync("./files/"+projectName);
         }
+          
+
+          
+        
+        let files = req.files;
+        let fileKeys = Object.keys(files);
         let path = './files/' +projectName +"/"
         for (let i=0;i<fileKeys.length;i++) {
           files[fileKeys[i]].mv(path + files[fileKeys[i]].name);
         }
-        
-
+        console.log("Updating Project File from Project "+projectName);
+        res.sendStatus(200);
       } catch (err) {
           console.log(err);
           res.send({

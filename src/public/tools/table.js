@@ -27,6 +27,7 @@ class table {
       this.cellChildren[0][i].innerHTML = this.schemaKeys[i];
       this.cellChildren[0][i].classList.add("tableCellChild", "tableHeaderCellChild");
       this.cells[0][i].style.width = "1000px";
+      this.cells[0][i].classList.add("tableHeaderCell");
     }
 
 
@@ -122,49 +123,70 @@ class table {
 
       } else if (this.schemaDataTypes[j] == "File") {
         this.cellChildren[i].push(document.createElement("div"));
-        this.cellChildren[i][j].appendChild(document.createElement("input"));
-        this.cellChildren[i][j].appendChild(document.createElement("button"));
-        this.cellChildren[i][j].appendChild(document.createElement('img'));
         
         
-        this.cellChildren[i][j].children[0].type = "file";
+        
         let fileToRequest = tableData[this.schemaKeys[j]];
-        this.cellChildren[i][j].children[1].onclick = function(){requestFile(fileToRequest)};;
-        this.cellChildren[i][j].children[1].innerHTML = "Download " + tableData[this.schemaKeys[j]];
+        
+        this.cellChildren[i][j].appendChild(document.createElement('img'));
+        this.cellChildren[i][j].appendChild(document.createElement("div"));
+        this.cellChildren[i][j].children[1].style.float = "right";
+        this.cellChildren[i][j].children[1].style.left = "10px";
+        this.cellChildren[i][j].children[1].style.position = "relative";
+        this.cellChildren[i][j].children[1].appendChild(document.createElement("input"));
+        this.cellChildren[i][j].children[1].appendChild(document.createElement("br"));
+        this.cellChildren[i][j].children[1].appendChild(document.createElement("button"));
+
+        if (fileToRequest) {
+          let index = fileToRequest.indexOf(".");
+          let filePath;
+          if (index >= 0) {
+            filePath = fileToRequest.substring(index, fileToRequest.length);
+          }
+  
+            
+          if (filePath==".png" || filePath==".jpg" || filePath==".jpeg") {
+            fetch("/getProjectFile", {
+              method: 'POST',
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'access-control-allow-origin': '*'
+              },
+              body: JSON.stringify({
+                "projectName": projectName,
+                "fileName":fileToRequest
+              })
+            })
+            .then(response => response.blob())
+            .then(data =>  {
+  
+              console.log("test")
+  
+              let blob = new Blob([data]);
+    
+              let blobUrl = window.URL.createObjectURL(blob); 
+              this.cellChildren[i][j].children[0].setAttribute('src', blobUrl);
+              this.cellChildren[i][j].children[0].style.width =  "auto";
+              this.cellChildren[i][j].children[0].style.height =  "auto";
+              this.cellChildren[i][j].children[0].style.maxHeight = "100%";
+              
+              this.cellChildren[i][j].children[0].style.maxWidth = "100%";
+              this.cellChildren[i][j].children[0].style["object-fit"] =  "contain";
+
+              
+            });
+            
+          }
+        }
+        
+        
+        this.cellChildren[i][j].children[1].children[0].type = "file";
+        
+        this.cellChildren[i][j].children[1].children[2].onclick = function(){if (fileToRequest){requestFile(fileToRequest)}};;
+        this.cellChildren[i][j].children[1].children[2].innerHTML = "Download " + tableData[this.schemaKeys[j]];
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
         
-
-        let index = fileToRequest.indexOf(".");
-        let filePath;
-        if (index >= 0)
-
-          filePath = fileToRequest.substring(index, fileToRequest.length);
-        if (filePath==".png" || filePath==".jpg" || filePath==".jpeg") {
-          fetch("/getProjectFile", {
-            method: 'POST',
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json',
-              'access-control-allow-origin': '*'
-            },
-            body: JSON.stringify({
-              "projectName": projectName,
-              "fileName":fileToRequest
-            })
-          })
-          .then(response => response.blob())
-          .then(data =>  {
-
-            console.log("test")
-
-            let blob = new Blob([data]);
-  
-            let blobUrl = window.URL.createObjectURL(blob); 
-            this.cellChildren[i][j].children[2].setAttribute('src', blobUrl);
-            this.cellChildren[i][j].children[2].style.width = '100%';  
-            
-          });
-        }
   
       }
       this.cellChildren[i][j].classList.add("tableCellChild");
@@ -208,15 +230,15 @@ class table {
       this.project.push({});
       for (let j = 0; j < this.cellChildren[i].length; j++) {
         if (this.schemaDataTypes[j]=="File") {
-          if (this.cellChildren[i][j].children[0].files[0]!==undefined) {
-            this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].children[0].files[0].name;
-            this.files.push(this.cellChildren[i][j].children[0].files[0]);
-            console.log(this.cellChildren[i][j].children[0].files[0].name)
-            this.fileNames.push(this.cellChildren[i][j].children[0].files[0].name);
+          if (this.cellChildren[i][j].children[1].children[0].files[0]!==undefined) {
+            this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].children[1].children[0].files[0].name;
+            this.files.push(this.cellChildren[i][j].children[1].children[0].files[0]);
+
+            this.fileNames.push(this.cellChildren[i][j].children[1].children[0].files[0].name);
 
             
           } else {
-            this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].children[1].innerHTML.substring(9);
+            this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].children[1].children[2].innerHTML.substring(9);
           }
           
         } else {
