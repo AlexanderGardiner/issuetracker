@@ -489,12 +489,13 @@ function setSchema(projectName, schema) {
 
 // Function to run at startup
 async function main() {
+  // Start database
+  await startupDatabase();
 
-    await startupDatabase();
-
-    await startExpressServer();
+  // Start server
+  await startExpressServer();
 
 }
 
-
+// Start program
 main();

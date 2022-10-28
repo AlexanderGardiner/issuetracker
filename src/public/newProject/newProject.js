@@ -1,24 +1,23 @@
+// Define global vars
 let projectName;
-
-
-// Get the default schema and send it to be displayed
-fetch("/getDefaultSchema", {
-        method: 'GET',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'access-control-allow-origin': '*'
-        }
-    })
-    .then(response => response.json())
-    .then(data => displaySchema(data));
-
 let schemaTable;
 let tableSchema;
 
+// Get the default schema and send it to be displayed
+fetch("/getDefaultSchema", {
+  method: 'GET',
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'access-control-allow-origin': '*'
+  }
+})
+.then(response => response.json())
+.then(data => displaySchema(data));
+
 // Display schema in editable table using inputs
 function displaySchema(schema) {
-
+  // Define table for selecting schema
   projectSchema = schema;
   schemaKeys = Object.keys(projectSchema);
   tableSchema = {
@@ -33,35 +32,38 @@ function displaySchema(schema) {
       "type": "Text"
     }
   };
+
+  // Define vars for table and schema names
   tableSchemaKeys = Object.keys(tableSchema)
   let tableData = [];
 
   for (let i = 0; i < schemaKeys.length; i++) {
     tableData.push({});
 
+    // Populate first column
     tableData[i][tableSchemaKeys[0]] = schemaKeys[i];
 
-
-
+    // Populate second column
     tableData[i][tableSchemaKeys[1]] = projectSchema[schemaKeys[i]].type;
 
-
+    // Populate third column
     if (projectSchema[schemaKeys[i]].type == "Multiple Choice") {
       tableData[i][tableSchemaKeys[2]] = projectSchema[schemaKeys[i]].options;
     } else {
       tableData[i][tableSchemaKeys[2]] = "";
     }
 
-
-
+    // Populate fourth column
     tableData[i][tableSchemaKeys[3]] = "";
   }
 
+  // Create table
   schemaTable = new table(tableData, tableSchema)
 }
 
-// Add property to table
+// Add property to schema
 function addProperty() {
+  // Define table for selecting schema of new row
   newRowTableSchema = {
     "Name of Property": {
       "type": "Text"
@@ -74,14 +76,16 @@ function addProperty() {
       "type": "Text"
     }
   };
+  
+  newRowTableSchemaKeys = Object.keys(newRowTableSchema)
   blankTableSchema = {};
   for (let i = 0; i < tableSchemaKeys.length; i++) {
     blankTableSchema[tableSchemaKeys[i]] = "";
   }
 
+  // Add row to the table
   schemaTable.addRow(blankTableSchema, newRowTableSchema)
 
- 
 }
 
 // Remove last property from table
@@ -95,6 +99,7 @@ function createProject() {
   projectName = document.getElementById("titleInput").value;
   let updatedSchema = {};
   updatedSchema._id = {"type":"_id"};
+  
   // Format multiple choice schema
   for (let i = 0; i < schemaData.length; i++) {
     if (schemaData[i]["Type of Property"] == "Multiple Choice") {
@@ -115,13 +120,13 @@ function createProject() {
   fetch("/createNewProject", {
     method: 'POST',
     headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'access-control-allow-origin': '*'
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'access-control-allow-origin': '*'
     },
     body: JSON.stringify({
-        "projectName": projectName,
-        "schema": updatedSchema
+      "projectName": projectName,
+      "schema": updatedSchema
     })
   })
   .then(response => response.text())
@@ -129,12 +134,12 @@ function createProject() {
 
 }
 
+// Open project page
 function redirectToProject(data) {
-
-    window.location.href = "../project/project.html?projectName=" + projectName;
-
+   window.location.href = "../project/project.html?projectName=" + projectName;
 }
 
+// Cancel creating project 
 function cancel() {
-    window.location.href = "../";
+  window.location.href = "../";
 }

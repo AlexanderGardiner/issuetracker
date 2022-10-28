@@ -40,9 +40,9 @@ class table {
 
 
   }
-  // Adding rows 
+  // Add row
   addRow(tableData, schema) {
-
+    // Prepare vars and create rows
     this.rows.push(this.tableBody.insertRow(-1));
     this.cells.push([]);
     this.cellChildren.push([]);
@@ -50,23 +50,30 @@ class table {
     for (let i = 0; i < this.schemaKeys.length; i++) {
       this.schemaDataTypes.push(schema[this.schemaKeys[i]].type);
     }
+    
     let i = this.rows.length - 1;
+
+    // Create cells based on type
     for (let j = 0; j < this.schemaDataTypes.length; j++) {
       this.cells[i].push(this.rows[i].insertCell(-1));
+
       if (this.schemaDataTypes[j] == "_id") {
+        // Create id cell
         this.cellChildren[i].push(document.createElement("textarea"));
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
         this.cellChildren[i][j].classList.add("textAreaCell");
         this.cellChildren[i][j].innerHTML = tableData[this.schemaKeys[j]];
         this.cellChildren[i][j].setAttribute("readonly", "true");
+        
       } else if (this.schemaDataTypes[j] == "Text") {
+        // Create text cell
         this.cellChildren[i].push(document.createElement("textarea"));
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
         this.cellChildren[i][j].innerHTML = tableData[this.schemaKeys[j]];
         this.cellChildren[i][j].classList.add("textAreaCell");
         
-
       } else if (this.schemaDataTypes[j] == "ReadOnlyText") {
+        // Create readonly text cell
         this.cellChildren[i].push(document.createElement("textarea"));
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
         this.cellChildren[i][j].setAttribute("readonly", "true");
@@ -74,12 +81,15 @@ class table {
         this.cellChildren[i][j].innerHTML = tableData[this.schemaKeys[j]].toString();
 
       } else if (this.schemaDataTypes[j] == "Time") {
+        // Create time cell
         this.cellChildren[i].push(document.createElement("textarea"));
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
         this.cellChildren[i][j].innerHTML = new Date(tableData[this.schemaKeys[j]]);
         this.cellChildren[i][j].setAttribute("readonly", "true");
         this.cellChildren[i][j].classList.add("textAreaCell");
+        
       } else if (this.schemaDataTypes[j] == "Multiple Choice") {
+        // Create multiple choice cell
         this.cellChildren[i].push(document.createElement("select"));
         let options = schema[this.schemaKeys[j]].options;
         let selectedIndex;
@@ -98,6 +108,7 @@ class table {
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
 
       } else if (this.schemaDataTypes[j] == "Multiple Choice ReadOnly") {
+        // Create readonly multiple choice cell
         this.cellChildren[i].push(document.createElement("select"));
         let options = schema[this.schemaKeys[j]].options;
         let selectedIndex;
@@ -116,15 +127,15 @@ class table {
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
 
       } else if (this.schemaDataTypes[j] == "User") {
+        // Create user cell
         this.cellChildren[i].push(document.createElement("textarea"));
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
         this.cellChildren[i][j].innerHTML = tableData[this.schemaKeys[j]];
         this.cellChildren[i][j].classList.add("textAreaCell");
 
       } else if (this.schemaDataTypes[j] == "File") {
+        // Create file cell
         this.cellChildren[i].push(document.createElement("div"));
-        
-        
         
         let fileToRequest = tableData[this.schemaKeys[j]];
         
@@ -137,14 +148,15 @@ class table {
         this.cellChildren[i][j].children[1].appendChild(document.createElement("br"));
         this.cellChildren[i][j].children[1].appendChild(document.createElement("button"));
 
+        // Get file
         if (fileToRequest) {
           let index = fileToRequest.indexOf(".");
           let filePath;
           if (index >= 0) {
             filePath = fileToRequest.substring(index, fileToRequest.length);
           }
-  
-            
+
+          // Display file if image
           if (filePath==".png" || filePath==".jpg" || filePath==".jpeg") {
             fetch("/getProjectFile", {
               method: 'POST',
@@ -160,11 +172,8 @@ class table {
             })
             .then(response => response.blob())
             .then(data =>  {
-  
-              console.log("test")
-  
+              // Create and style image
               let blob = new Blob([data]);
-    
               let blobUrl = window.URL.createObjectURL(blob); 
               this.cellChildren[i][j].children[0].setAttribute('src', blobUrl);
               this.cellChildren[i][j].children[0].style.width =  "auto";
@@ -173,33 +182,26 @@ class table {
               
               this.cellChildren[i][j].children[0].style.maxWidth = "100%";
               this.cellChildren[i][j].children[0].style["object-fit"] =  "contain";
-
               
             });
-            
           }
         }
-        
-        
+
+        // Set download link
         this.cellChildren[i][j].children[1].children[0].type = "file";
-        
         this.cellChildren[i][j].children[1].children[2].onclick = function(){if (fileToRequest){requestFile(fileToRequest)}};;
         this.cellChildren[i][j].children[1].children[2].innerHTML = "Download " + tableData[this.schemaKeys[j]];
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
-        
   
       }
       this.cellChildren[i][j].classList.add("tableCellChild");
       this.cells[i][j].classList.add("tableCell");
 
-
     }
-
-
   }
 
+  // Remove row 
   removeRow() {
-    // Remove row
     if (this.cellChildren.length > 1 && this.cells.length > 1 && this.rows.length > 1) {
       for (let i = 0; i < this.cellChildren.length; i++) {
         this.cellChildren[this.cellChildren.length - 1][0].remove();
@@ -209,18 +211,13 @@ class table {
         this.cells[this.cells.length - 1][0].remove();
       }
 
-
-
       this.cells.pop();
       this.rows[this.rows.length - 1].remove();
       this.rows.pop()
     }
-
-
-
-
   }
 
+  // Export table data
   exportTable(schema) {
     this.schemaKeys = Object.keys(schema);
     this.project = [];
@@ -230,23 +227,20 @@ class table {
       this.project.push({});
       for (let j = 0; j < this.cellChildren[i].length; j++) {
         if (this.schemaDataTypes[j]=="File") {
+          // Special formatting for file
           if (this.cellChildren[i][j].children[1].children[0].files[0]!==undefined) {
             this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].children[1].children[0].files[0].name;
             this.files.push(this.cellChildren[i][j].children[1].children[0].files[0]);
-
             this.fileNames.push(this.cellChildren[i][j].children[1].children[0].files[0].name);
-
             
           } else {
             this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].children[1].children[2].innerHTML.substring(9);
           }
           
         } else {
+          // Everything else
           this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].value;
         }
-        
-        
-
       }
     }
 
