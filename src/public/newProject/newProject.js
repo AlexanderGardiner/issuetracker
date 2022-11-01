@@ -17,6 +17,7 @@ fetch("/getDefaultSchema", {
 
 // Display schema in editable table using inputs
 function displaySchema(schema) {
+  console.log("Displaing schema");
   // Define table for selecting schema
   projectSchema = schema;
   schemaKeys = Object.keys(projectSchema);
@@ -63,6 +64,7 @@ function displaySchema(schema) {
 
 // Add property to schema
 function addProperty() {
+  console.log("Adding property");
   // Define table for selecting schema of new row
   newRowTableSchema = {
     "Name of Property": {
@@ -90,11 +92,13 @@ function addProperty() {
 
 // Remove last property from table
 function removeProperty() {
+  console.log("Reomving property");
   schemaTable.removeRow();
 }
 
 // Submit project to server to be created
 function createProject() {
+  console.log("Creating project");
   let schemaData = schemaTable.exportTable(tableSchema);
   projectName = document.getElementById("titleInput").value;
   let updatedSchema = {};
@@ -136,10 +140,12 @@ function createProject() {
 
 // Open project page
 function redirectToProject(data) {
+  console.log("Redirecting to project page");
    window.location.href = "../project/project.html?projectName=" + projectName;
 }
 
 // Cancel creating project 
 function cancel() {
+  console.log("Canceling project creation");
   window.location.href = "../";
 }

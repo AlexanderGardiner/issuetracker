@@ -1,5 +1,6 @@
 class table {
   constructor(tableData, schema) {
+    console.log("Creating table");
     // Table data and schema both in format for a project but can be used for other tables
 
     // Initialize table and prepare variables
@@ -42,6 +43,7 @@ class table {
   }
   // Add row
   addRow(tableData, schema) {
+    console.log("Adding row")
     // Prepare vars and create rows
     this.rows.push(this.tableBody.insertRow(-1));
     this.cells.push([]);
@@ -202,6 +204,7 @@ class table {
 
   // Remove row 
   removeRow() {
+    console.log("Removing row");
     if (this.cellChildren.length > 1 && this.cells.length > 1 && this.rows.length > 1) {
       for (let i = 0; i < this.cellChildren.length; i++) {
         this.cellChildren[this.cellChildren.length - 1][0].remove();
@@ -219,6 +222,7 @@ class table {
 
   // Export table data
   exportTable(schema) {
+    console.log("Exporting table");
     this.schemaKeys = Object.keys(schema);
     this.project = [];
     this.files = [];

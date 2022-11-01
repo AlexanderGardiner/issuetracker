@@ -44,12 +44,13 @@ function displayProjectNames(projectNames) {
     document.getElementById("projectDiv").appendChild(buttonsDivs[i]);
 
   }
+
 }
 
 // Load selected project
 function loadProject(projectName) {
   console.log("Loading Project: " + projectName);
-    window.location.href = "project/project.html?projectName=" + projectName;
+  window.location.href = "project/project.html?projectName=" + projectName;
 }
 
 // Set page location to create project

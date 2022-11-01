@@ -31,6 +31,7 @@ let downloadedFileName;
 
 // Display project in editable table
 function displayProject(data) {
+  console.log("Displaying project: " + data.projectName);
   document.getElementById("timeEdited").innerHTML = "Time Edited: " + new Date(data.project[0].projectTimeEdited);
   document.getElementById("title").innerHTML = projectName;
   project = data.project;
@@ -45,6 +46,7 @@ function displayProject(data) {
 
 // Add issue
 function addIssue() {
+  console.log("Adding issue");
   let blankData = {};
 
   // Create blank issue based on schema
@@ -70,6 +72,7 @@ function addIssue() {
 
 // Remove issue
 function removeIssue() {
+  console.log("Removing issue");
   if (projectTable.cellChildren.length>0) {
     issueIDsToDelete.push(projectTable.cellChildren[projectTable.cellChildren.length - 1][0].value);
   }
@@ -79,6 +82,7 @@ function removeIssue() {
 
 // Update project to server
 function updateProject() {
+  console.log("Updating project");
   let project = projectTable.exportTable(schema);
   // Setup files as formdata
   let files = projectTable.files;
@@ -109,6 +113,7 @@ function updateProject() {
 
 // Update project files
 function updateProjectFiles(projectName,files,fd) {
+  console.log("Updating project files");
   if (files.length>0) {
     fetch("/updateProjectFiles?"+ new URLSearchParams({
       "projectName": projectName,
@@ -127,6 +132,7 @@ function updateProjectFiles(projectName,files,fd) {
 
 // Get file from server
 function requestFile(fileName) {
+  console.log("Reqeusting file");
   downloadedFileName = fileName;
 
   // Post request
@@ -149,6 +155,7 @@ function requestFile(fileName) {
 
 // Create download link and click
 function downloadFile(blob) {
+  console.log("Downloading file");
 
   // Setup blob link
   const newBlob = new Blob([blob]);
@@ -176,15 +183,18 @@ function downloadFile(blob) {
 
 // Reload page
 function reloadPage(data) {
+  console.log("Reloading page");
   window.location.reload(true);
 }
 
 // Edit schema
 function editSchema() {
+  console.log("Editing schema");
   window.location.href = "../editProjectSchema/editProjectSchema.html?projectName=" + projectName;
 }
 
 // Go to main page
 function mainPage() {
+  console.log("Redirecing to main page");
   window.location.href = "../";
 }

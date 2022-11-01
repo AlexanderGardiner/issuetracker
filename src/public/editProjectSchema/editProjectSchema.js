@@ -29,6 +29,7 @@ let schemaIDsToDelete = [];
 
 // Display schema in editable table using inputs
 function displaySchema(schema) {
+  console.log("Displaying schema");
   // Define vars and schema for table
   projectSchema = schema;
   schemaKeys = Object.keys(projectSchema);
@@ -79,6 +80,7 @@ function displaySchema(schema) {
 
 // Add property to table
 function addProperty() {
+  console.log("Adding property");
   // Define schema for adding property
   newRowTableSchema = {
     "Name of Property": {
@@ -108,6 +110,7 @@ function addProperty() {
 
 // Remove last property from table
 function removeProperty() {
+  console.log("Removing property");
   // Check if there is only one property left and it is not a newly added property
   if (schemaTable.cellChildren.length>0 && schemaTable.cellChildren[schemaTable.cellChildren.length - 1][1].disabled==true) {
     // Set to be deleted from database
@@ -121,6 +124,7 @@ function removeProperty() {
 
 // Submit project to server to be created
 function updateSchema() {
+  console.log("Updating schema");
   let deleteOldProperties = confirm("Delete old properties (yes/no)?")
   let schemaData = schemaTable.exportTable(tableSchema);
   let updatedSchema = {};
@@ -164,10 +168,12 @@ function updateSchema() {
 
 // Open project page
 function loadProjectPage(data) {
+  console.log("Loadiing project page");
   window.location.href = "../project/project.html?projectName=" + document.getElementById("titleInput").value;
 }
 
 // Cancel editing schema
 function cancel() {
+  console.log("Canceling edit of schema");
   window.location.href = "../project/project.html?projectName=" + projectName;
 }
