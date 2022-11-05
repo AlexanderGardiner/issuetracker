@@ -77,6 +77,12 @@ function removeIssue() {
     issueIDsToDelete.push(projectTable.cellChildren[projectTable.cellChildren.length - 1][0].value);
   }
 
+  for (let i=0;i<schemaKeys.length; i++) {
+    if (schema[schemaKeys[i]].type== "File") {
+      prepareDeletionOfOldFile(projectTable.cellChildren[projectTable.cellChildren.length - 1][i].children[1].children[2].value.slice(9));
+
+    }
+  }
   projectTable.removeRow();
 }
 
@@ -130,6 +136,9 @@ function updateProjectFiles(projectName,files,fd) {
   }
 }
 
+function prepareDeletionOfOldFile(fileName) {
+  projectFilesToDelete.push(fileName);
+}
 // Get file from server
 function requestFile(fileName) {
   console.log("Reqeusting file");

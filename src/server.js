@@ -190,8 +190,7 @@ async function startExpressServer() {
         "projectTimeEdited": updatedTime
       });
 
-    // Create schema
-      createSchema(req.body.projectName);
+      // Create schema
       setSchema(req.body.projectName, req.body.schema);
       res.send("Creating New Project");
     } catch (err) {
@@ -288,25 +287,35 @@ async function startExpressServer() {
   // Update project files
   app.post('/updateProjectFiles', async function (req, res) {
     try {
-      console.log("Updating Project File from Project: "+projectName);
+      
       // Create folder if it doesn't exists/
       
       let projectName = req.query.projectName;
+      console.log("Updating Project File from Project: "+projectName);
       if (!fs.existsSync("./files/"+projectName)){
         fs.mkdirSync("./files/"+projectName);
+        fs.writeFileSync("./fileReferences/"+projectName+".json",JSON.stringify({}));
       }
         
 
         
       // Get file and put into folder
-      let fileName = req.query.fileName;
       let files = req.files;
       let fileKeys = Object.keys(files);
       let path = './files/' +projectName +"/"
+      let fileReferencesFile = JSON.parse(fs.readFileSync("./fileReferences/"+projectName+".json", 'utf8'));
       for (let i=0;i<fileKeys.length;i++) {
         files[fileKeys[i]].mv(path + files[fileKeys[i]].name);
+        if(fileReferencesFile[files[fileKeys[i]].name] !== undefined) {
+          fileReferencesFile[files[fileKeys[i]].name].fileReferences += 1;
+        } else {
+          fileReferencesFile[files[fileKeys[i]].name] = {"fileReferences":1};
+        }
+        
       }
       
+      
+      fs.writeFileSync("./fileReferences/"+projectName+".json",JSON.stringify(fileReferencesFile));
       res.sendStatus(200);
     } catch (err) {
       console.log(err);
@@ -344,7 +353,7 @@ async function startExpressServer() {
   // Delete project
   app.post('/deleteProject', async function (req, res) {
     try {
-      conso.log("Deleting Project: "+projectName);
+      console.log("Deleting Project: "+req.body.projectName);
       await deleteProject(req.body.projectName);
       res.send("Deleted");
 

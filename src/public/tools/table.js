@@ -149,7 +149,7 @@ class table {
         this.cellChildren[i][j].children[1].appendChild(document.createElement("input"));
         this.cellChildren[i][j].children[1].appendChild(document.createElement("br"));
         this.cellChildren[i][j].children[1].appendChild(document.createElement("button"));
-
+        
         // Get file
         if (fileToRequest) {
           let index = fileToRequest.indexOf(".");
@@ -193,7 +193,15 @@ class table {
         this.cellChildren[i][j].children[1].children[0].type = "file";
         this.cellChildren[i][j].children[1].children[2].onclick = function(){if (fileToRequest){requestFile(fileToRequest)}};;
         this.cellChildren[i][j].children[1].children[2].innerHTML = "Download " + tableData[this.schemaKeys[j]];
+        this.cellChildren[i][j].children[1].children[2].value = "Download " + tableData[this.schemaKeys[j]];
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
+
+
+        
+        let previousFileName = this.cellChildren[i][j].children[1].children[2].value.slice(9);
+
+        this.cellChildren[i][j].children[1].children[0].onchange = function(){prepareDeletionOfOldFile(previousFileName)};
+
   
       }
       this.cellChildren[i][j].classList.add("tableCellChild");

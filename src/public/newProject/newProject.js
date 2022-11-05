@@ -141,7 +141,7 @@ function createProject() {
 // Open project page
 function redirectToProject(data) {
   console.log("Redirecting to project page");
-   window.location.href = "../project/project.html?projectName=" + projectName;
+  window.location.href = "../project/project.html?projectName=" + projectName;
 }
 
 // Cancel creating project 
