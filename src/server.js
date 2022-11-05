@@ -294,7 +294,7 @@ async function startExpressServer() {
       console.log("Updating Project File from Project: "+projectName);
       if (!fs.existsSync("./files/"+projectName)){
         fs.mkdirSync("./files/"+projectName);
-        fs.writeFileSync("./fileReferences/"+projectName+".json",JSON.stringify({}));
+
       }
         
 
@@ -303,14 +303,10 @@ async function startExpressServer() {
       let files = req.files;
       let fileKeys = Object.keys(files);
       let path = './files/' +projectName +"/"
-      let fileReferencesFile = JSON.parse(fs.readFileSync("./fileReferences/"+projectName+".json", 'utf8'));
+
       for (let i=0;i<fileKeys.length;i++) {
         files[fileKeys[i]].mv(path + files[fileKeys[i]].name);
-        if(fileReferencesFile[files[fileKeys[i]].name] !== undefined) {
-          fileReferencesFile[files[fileKeys[i]].name].fileReferences += 1;
-        } else {
-          fileReferencesFile[files[fileKeys[i]].name] = {"fileReferences":1};
-        }
+
         
       }
       
