@@ -26,12 +26,12 @@ let schemaKeys;
 let schema;
 let project;
 let issueIDsToDelete = [];
-let projectFilesToDelete = [];
+let projectFileIDsToDelete = [];
 let downloadedFileName;
 
 // Display project in editable table
 function displayProject(data) {
-  console.log("Displaying project: " + data.projectName);
+  console.log("Displaying project: " + projectName);
   document.getElementById("timeEdited").innerHTML = "Time Edited: " + new Date(data.project[0].projectTimeEdited);
   document.getElementById("title").innerHTML = projectName;
   project = data.project;
@@ -79,7 +79,8 @@ function removeIssue() {
 
   for (let i=0;i<schemaKeys.length; i++) {
     if (schema[schemaKeys[i]].type== "File") {
-      prepareDeletionOfOldFile(projectTable.cellChildren[projectTable.cellChildren.length - 1][i].children[1].children[2].value.slice(9));
+      
+      prepareDeletionOfOldFile(projectTable.cellChildren[projectTable.cellChildren.length - 1][i].fileID);
 
     }
   }
@@ -97,7 +98,7 @@ function updateProject() {
   for (let i=0;i<files.length;i++) {
     fd.append(fileNames[i], files[i]);
   }
-
+  alert(projectFileIDsToDelete)
   // Post request
   fetch("/updateProject", {
     method: 'POST',
@@ -109,7 +110,10 @@ function updateProject() {
     body: JSON.stringify({
       "projectName": projectName,
       "project": project,
-      "issueIDsToDelete": issueIDsToDelete
+      "issueIDsToDelete": issueIDsToDelete,
+      "projectFileIDsTDelete": projectFileIDsToDelete,
+      "schema": schema,
+      "schemaKeys": schemaKeys
     })
   })
   .then((response) => response.text())
@@ -136,8 +140,8 @@ function updateProjectFiles(projectName,files,fd) {
   }
 }
 
-function prepareDeletionOfOldFile(fileName) {
-  projectFilesToDelete.push(fileName);
+function prepareDeletionOfOldFile(fileID) {
+  projectFileIDsToDelete.push(fileID);
 }
 // Get file from server
 function requestFile(fileName) {
@@ -193,7 +197,7 @@ function downloadFile(blob) {
 // Reload page
 function reloadPage(data) {
   console.log("Reloading page");
-  window.location.reload(true);
+  //window.location.reload(true);
 }
 
 // Edit schema

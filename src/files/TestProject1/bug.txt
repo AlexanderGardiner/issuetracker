@@ -1,0 +1,4 @@
+flopas randomly spin up on boot and after shoot - probably just delay
+only collects one ball before collectors turn off
+second ball ejects straight up regardless of colour
+defaults to fender shot when floppas not aimed - not possible

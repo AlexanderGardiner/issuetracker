@@ -187,7 +187,8 @@ async function startExpressServer() {
       createNewProject(req.body.projectName);
       createNewIssue(req.body.projectName, {
         "projectTimeEditedExists": "true",
-        "projectTimeEdited": updatedTime
+        "projectTimeEdited": updatedTime,
+        "filesUploaded": 0
       });
 
       // Create schema
@@ -227,8 +228,11 @@ async function startExpressServer() {
   // Get project data from schema and from database
   app.post('/getProjectFile', async function (req, res) {
     try {
+      let issueID = req.body.issueID;
+      let propertyName = req.body.propertyName;
       console.log("Getting Project File: " + req.body.fileName+" from "+req.body.projectName);
-      res.sendFile(__dirname +"/files/"+req.body.projectName+"/"+req.body.fileName);
+      let fileID = (await MongoDatabase.db("IssueTracker").collection(req.body.projectName).findOne({_id : ObjectId(issueID)}))[propertyName].fileID;
+      res.sendFile(__dirname +"/files/"+req.body.projectName+"/"+fileID);
     } catch (err) {
       console.log(err);
       res.send({
@@ -243,34 +247,61 @@ async function startExpressServer() {
 
   // Update project issues
   app.post('/updateProject', async function (req, res) {
+
     try {
-      console.log("Updating Project: " + JSON.stringify(req.body.projectName));
+      // Vars
+      let projectName = req.body.projectName;
+      let path = './files/' +projectName +"/";
+      
+      console.log("Updating Project: " + JSON.stringify(projectName));
       res.send("Updating Project")
 
       let updatedTime = new Date(Date.now());
-      await editEditedTime(req.body.projectName, updatedTime);
+      await editEditedTime(projectName, updatedTime);
+
+      // Delete files that need deleting
+      console.log("Deleting Project Files from Project: "+projectName);
+      
+      console.log(JSON.stringify(req.body.projectFileIDsToDelete));
+      for (let i=0;i<req.body.projectFileIDsToDelete.length;i++) {
+        let fileID = req.body.projectFileIDsToDelete[i];
+        fs.unlinkSync(path+fileID, (err => {
+          if (err) console.log(err)}));
+      }
+
 
       
       project = req.body.project;
+      let numberOfFilesUploaded = 0;
       for (let i = 0; i < project.length; i++) {
 
         if (project[i]._id == "Not In Database") {
           // Send to database if new property
           delete project[i]._id;
-          await createNewIssue(req.body.projectName, project[i])
+          await createNewIssue(projectName, project[i])
+
+          //TODO: fix this for files
         } else {
-          // Send to database if old property
+          
+          // Send to database if existing property
           let ID = project[i]._id;
           delete project[i]._id;
           let keys = Object.keys(project[i]);
           for (let j = 0; j < keys.length; j++) {
-            await editProperty(req.body.projectName, ID, keys[j], project[i][keys[j]]);
+            if (req.body.schema[req.body.schemaKeys[j+1]].type=="File") {
+              let filesUploaded = (await MongoDatabase.db("IssueTracker").collection(projectName).findOne({})).filesUploaded;
+              await editProperty(projectName, ID, keys[j], {"fileName":project[i][keys[j]],"fileID":(filesUploaded+project[i][keys[j]].substring(project[i][keys[j]].lastIndexOf("."), project[i][keys[j]].length))});
+              
+            } else {
+              await editProperty(projectName, ID, keys[j], project[i][keys[j]]);
+            }
+            
           }
 
         }
       }
       // Delete any deleted issues
-      await deleteIssues(req.body.issueIDsToDelete, req.body.projectName);
+      await deleteIssues(req.body.issueIDsToDelete, projectName);
 
         
     } catch (err) {
@@ -287,31 +318,41 @@ async function startExpressServer() {
   // Update project files
   app.post('/updateProjectFiles', async function (req, res) {
     try {
+      // Vars
+      let files = req.files;
+      let fileKeys = Object.keys(files);
+      let projectName = req.query.projectName;
+      let path = './files/' +projectName +"/";
       
       // Create folder if it doesn't exists/
-      
-      let projectName = req.query.projectName;
       console.log("Updating Project File from Project: "+projectName);
       if (!fs.existsSync("./files/"+projectName)){
         fs.mkdirSync("./files/"+projectName);
 
       }
         
-
-        
       // Get file and put into folder
-      let files = req.files;
-      let fileKeys = Object.keys(files);
-      let path = './files/' +projectName +"/"
-
+      let filesUploaded = (await MongoDatabase.db("IssueTracker").collection(projectName).findOne({})).filesUploaded;
+      
       for (let i=0;i<fileKeys.length;i++) {
-        files[fileKeys[i]].mv(path + files[fileKeys[i]].name);
-
+        let fileName = files[fileKeys[i]].name;
+        let fileType = fileName.substring(fileName.lastIndexOf("."), fileName.length);
+        files[fileKeys[i]].mv(path + filesUploaded + fileType);
         
+        
+
+        await MongoDatabase.db("IssueTracker").collection(projectName).updateOne({}
+        ,{
+          $set: {
+            "filesUploaded": filesUploaded
+          }
+        }, function (err, res) {
+          if (err) throw err;
+        });
+        filesUploaded+=1;  
       }
       
-      
-      fs.writeFileSync("./fileReferences/"+projectName+".json",JSON.stringify(fileReferencesFile));
+
       res.sendStatus(200);
     } catch (err) {
       console.log(err);
@@ -330,6 +371,7 @@ async function startExpressServer() {
       let fileKeys = Object.keys(files);
       let projectName = req.query.projectName;
       let path = './files/' +projectName +"/"
+      
       for (let i=0;i<fileKeys.length;i++) {
         fs.unlinkSync(path+files[fileKeys[i]].name, (err => {
         if (err) console.log(err)}));

@@ -1,5 +1,6 @@
 class table {
   constructor(tableData, schema) {
+    
     console.log("Creating table");
     // Table data and schema both in format for a project but can be used for other tables
 
@@ -9,6 +10,7 @@ class table {
     this.rows = [];
     this.cells = [];
     this.cellChildren = [];
+    this.tableData = tableData;
     this.schemaKeys = Object.keys(schema);
     this.schemaDataTypes = [];
     this.tableHeader = this.table.createTHead();
@@ -33,8 +35,8 @@ class table {
 
 
     // Create body
-    for (let i = 1; i < tableData.length + 1; i++) {
-      this.addRow(tableData[i - 1], schema)
+    for (let i = 1; i < this.tableData.length + 1; i++) {
+      this.addRow(this.tableData[i - 1], schema)
     }
 
 
@@ -45,6 +47,7 @@ class table {
   addRow(tableData, schema) {
     console.log("Adding row")
     // Prepare vars and create rows
+    this.tableData = tableData;
     this.rows.push(this.tableBody.insertRow(-1));
     this.cells.push([]);
     this.cellChildren.push([]);
@@ -52,7 +55,7 @@ class table {
     for (let i = 0; i < this.schemaKeys.length; i++) {
       this.schemaDataTypes.push(schema[this.schemaKeys[i]].type);
     }
-    
+
     let i = this.rows.length - 1;
 
     // Create cells based on type
@@ -64,39 +67,39 @@ class table {
         this.cellChildren[i].push(document.createElement("textarea"));
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
         this.cellChildren[i][j].classList.add("textAreaCell");
-        this.cellChildren[i][j].innerHTML = tableData[this.schemaKeys[j]];
+        this.cellChildren[i][j].innerHTML = this.tableData[this.schemaKeys[j]];
         this.cellChildren[i][j].setAttribute("readonly", "true");
-        
+
       } else if (this.schemaDataTypes[j] == "Text") {
         // Create text cell
         this.cellChildren[i].push(document.createElement("textarea"));
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
-        this.cellChildren[i][j].innerHTML = tableData[this.schemaKeys[j]];
+        this.cellChildren[i][j].innerHTML = this.tableData[this.schemaKeys[j]];
         this.cellChildren[i][j].classList.add("textAreaCell");
-        
+
       } else if (this.schemaDataTypes[j] == "ReadOnlyText") {
         // Create readonly text cell
         this.cellChildren[i].push(document.createElement("textarea"));
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
         this.cellChildren[i][j].setAttribute("readonly", "true");
         this.cellChildren[i][j].classList.add("textAreaCell");
-        this.cellChildren[i][j].innerHTML = tableData[this.schemaKeys[j]].toString();
+        this.cellChildren[i][j].innerHTML = this.tableData[this.schemaKeys[j]].toString();
 
       } else if (this.schemaDataTypes[j] == "Time") {
         // Create time cell
         this.cellChildren[i].push(document.createElement("textarea"));
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
-        this.cellChildren[i][j].innerHTML = new Date(tableData[this.schemaKeys[j]]);
+        this.cellChildren[i][j].innerHTML = new Date(this.tableData[this.schemaKeys[j]]);
         this.cellChildren[i][j].setAttribute("readonly", "true");
         this.cellChildren[i][j].classList.add("textAreaCell");
-        
+
       } else if (this.schemaDataTypes[j] == "Multiple Choice") {
         // Create multiple choice cell
         this.cellChildren[i].push(document.createElement("select"));
         let options = schema[this.schemaKeys[j]].options;
         let selectedIndex;
         for (let k = 0; k < options.length; k++) {
-          if (options[k] == tableData[this.schemaKeys[j]]) {
+          if (options[k] == this.tableData[this.schemaKeys[j]]) {
             selectedIndex = k;
           }
           let option = document.createElement("option");
@@ -115,7 +118,7 @@ class table {
         let options = schema[this.schemaKeys[j]].options;
         let selectedIndex;
         for (let k = 0; k < options.length; k++) {
-          if (options[k] == tableData[this.schemaKeys[j]]) {
+          if (options[k] == this.tableData[this.schemaKeys[j]]) {
             selectedIndex = k;
           }
           let option = document.createElement("option");
@@ -132,15 +135,14 @@ class table {
         // Create user cell
         this.cellChildren[i].push(document.createElement("textarea"));
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
-        this.cellChildren[i][j].innerHTML = tableData[this.schemaKeys[j]];
+        this.cellChildren[i][j].innerHTML = this.tableData[this.schemaKeys[j]];
         this.cellChildren[i][j].classList.add("textAreaCell");
 
       } else if (this.schemaDataTypes[j] == "File") {
         // Create file cell
         this.cellChildren[i].push(document.createElement("div"));
-        
-        let fileToRequest = tableData[this.schemaKeys[j]];
-        
+        let fileToRequest = this.tableData[this.schemaKeys[j]].fileName;
+
         this.cellChildren[i][j].appendChild(document.createElement('img'));
         this.cellChildren[i][j].appendChild(document.createElement("div"));
         this.cellChildren[i][j].children[1].style.float = "right";
@@ -149,7 +151,7 @@ class table {
         this.cellChildren[i][j].children[1].appendChild(document.createElement("input"));
         this.cellChildren[i][j].children[1].appendChild(document.createElement("br"));
         this.cellChildren[i][j].children[1].appendChild(document.createElement("button"));
-        
+        this.cellChildren[i][j].fileID = this.tableData[this.schemaKeys[j]].file;
         // Get file
         if (fileToRequest) {
           let index = fileToRequest.indexOf(".");
@@ -157,9 +159,10 @@ class table {
           if (index >= 0) {
             filePath = fileToRequest.substring(index, fileToRequest.length);
           }
-
+          let issueID = this.cellChildren[i][0].value;
+          let propertyName = this.schemaKeys[j];
           // Display file if image
-          if (filePath==".png" || filePath==".jpg" || filePath==".jpeg") {
+          if (filePath == ".png" || filePath == ".jpg" || filePath == ".jpeg") {
             fetch("/getProjectFile", {
               method: 'POST',
               headers: {
@@ -169,40 +172,42 @@ class table {
               },
               body: JSON.stringify({
                 "projectName": projectName,
-                "fileName":fileToRequest
+                "fileName": fileToRequest,
+                "issueID": issueID,
+                "propertyName": propertyName
               })
             })
-            .then(response => response.blob())
-            .then(data =>  {
-              // Create and style image
-              let blob = new Blob([data]);
-              let blobUrl = window.URL.createObjectURL(blob); 
-              this.cellChildren[i][j].children[0].setAttribute('src', blobUrl);
-              this.cellChildren[i][j].children[0].style.width =  "auto";
-              this.cellChildren[i][j].children[0].style.height =  "auto";
-              this.cellChildren[i][j].children[0].style.maxHeight = "100%";
-              
-              this.cellChildren[i][j].children[0].style.maxWidth = "100%";
-              this.cellChildren[i][j].children[0].style["object-fit"] =  "contain";
-              
-            });
+              .then(response => response.blob())
+              .then(data => {
+                // Create and style image
+                let blob = new Blob([data]);
+                let blobUrl = window.URL.createObjectURL(blob);
+                this.cellChildren[i][j].children[0].setAttribute('src', blobUrl);
+                this.cellChildren[i][j].children[0].style.width = "auto";
+                this.cellChildren[i][j].children[0].style.height = "auto";
+                this.cellChildren[i][j].children[0].style.maxHeight = "100%";
+
+                this.cellChildren[i][j].children[0].style.maxWidth = "100%";
+                this.cellChildren[i][j].children[0].style["object-fit"] = "contain";
+
+              });
           }
         }
 
         // Set download link
         this.cellChildren[i][j].children[1].children[0].type = "file";
-        this.cellChildren[i][j].children[1].children[2].onclick = function(){if (fileToRequest){requestFile(fileToRequest)}};;
-        this.cellChildren[i][j].children[1].children[2].innerHTML = "Download " + tableData[this.schemaKeys[j]];
-        this.cellChildren[i][j].children[1].children[2].value = "Download " + tableData[this.schemaKeys[j]];
+        this.cellChildren[i][j].children[1].children[2].onclick = function() { if (fileToRequest) { requestFile(fileToRequest) } };;
+        this.cellChildren[i][j].children[1].children[2].innerHTML = "Download " + this.tableData[this.schemaKeys[j]].fileName;
+        this.cellChildren[i][j].children[1].children[2].value = "Download " + this.tableData[this.schemaKeys[j]].fileName;
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
 
 
-        
+
         let previousFileName = this.cellChildren[i][j].children[1].children[2].value.slice(9);
 
-        this.cellChildren[i][j].children[1].children[0].onchange = function(){prepareDeletionOfOldFile(previousFileName)};
+        this.cellChildren[i][j].children[1].children[0].onchange = function() { prepareDeletionOfOldFile(previousFileName) };
 
-  
+
       }
       this.cellChildren[i][j].classList.add("tableCellChild");
       this.cells[i][j].classList.add("tableCell");
@@ -238,17 +243,17 @@ class table {
     for (let i = 1; i < this.cellChildren.length; i++) {
       this.project.push({});
       for (let j = 0; j < this.cellChildren[i].length; j++) {
-        if (this.schemaDataTypes[j]=="File") {
+        if (this.schemaDataTypes[j] == "File") {
           // Special formatting for file
-          if (this.cellChildren[i][j].children[1].children[0].files[0]!==undefined) {
+          if (this.cellChildren[i][j].children[1].children[0].files[0] !== undefined) {
             this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].children[1].children[0].files[0].name;
             this.files.push(this.cellChildren[i][j].children[1].children[0].files[0]);
             this.fileNames.push(this.cellChildren[i][j].children[1].children[0].files[0].name);
-            
+
           } else {
             this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].children[1].children[2].innerHTML.substring(9);
           }
-          
+
         } else {
           // Everything else
           this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].value;
