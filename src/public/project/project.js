@@ -79,7 +79,6 @@ function removeIssue() {
 
   for (let i=0;i<schemaKeys.length; i++) {
     if (schema[schemaKeys[i]].type== "File") {
-      
       prepareDeletionOfOldFile(projectTable.cellChildren[projectTable.cellChildren.length - 1][i].fileID);
 
     }
@@ -88,17 +87,11 @@ function removeIssue() {
 }
 
 // Update project to server
-function updateProject() {
+function updateProjectData(project) {
   console.log("Updating project");
-  let project = projectTable.exportTable(schema);
-  // Setup files as formdata
-  let files = projectTable.files;
-  let fileNames = projectTable.fileNames;
-  var fd = new FormData();
-  for (let i=0;i<files.length;i++) {
-    fd.append(fileNames[i], files[i]);
-  }
-  alert(projectFileIDsToDelete)
+  
+  
+
   // Post request
   fetch("/updateProject", {
     method: 'POST',
@@ -111,18 +104,26 @@ function updateProject() {
       "projectName": projectName,
       "project": project,
       "issueIDsToDelete": issueIDsToDelete,
-      "projectFileIDsTDelete": projectFileIDsToDelete,
+      "projectFileIDsToDelete": projectFileIDsToDelete,
       "schema": schema,
       "schemaKeys": schemaKeys
     })
   })
   .then((response) => response.text())
-  .then((data) => updateProjectFiles(projectName,files,fd));
+  .then((data) => reloadPage(""));
 
 }
 
 // Update project files
-function updateProjectFiles(projectName,files,fd) {
+function updateProject() {
+  // Setup files as formdata
+  let project = projectTable.exportTable(schema);
+  let files = projectTable.files;
+  let fileIDs = projectTable.fileIDs;
+  var fd = new FormData();
+  for (let i=0;i<files.length;i++) {
+    fd.append(fileIDs[i], files[i]);
+  }
   console.log("Updating project files");
   if (files.length>0) {
     fetch("/updateProjectFiles?"+ new URLSearchParams({
@@ -132,10 +133,10 @@ function updateProjectFiles(projectName,files,fd) {
       body: fd
     })
     .then((response) => response.text())
-    .then((data) => reloadPage(data));
+    .then((data) => updateProjectData(project));
     
   } else {
-    reloadPage("");
+    updateProjectData(project);
     
   }
 }
@@ -197,7 +198,7 @@ function downloadFile(blob) {
 // Reload page
 function reloadPage(data) {
   console.log("Reloading page");
-  //window.location.reload(true);
+  window.location.reload(true);
 }
 
 // Edit schema

@@ -17,7 +17,8 @@ const fileupload = require("express-fileupload");
 process.chdir("src");;
 
 // Vars for mongodb database
-var url = "mongodb+srv://Main:8dmfv2tXNor2HG9T@issuetracker.9w0hzlx.mongodb.net/?retryWrites=true&w=majority";
+//var url = "mongodb+srv://Main:8dmfv2tXNor2HG9T@issuetracker.9w0hzlx.mongodb.net/?retryWrites=true&w=majority";
+var url = "mongodb://localhost:27017";
 var MongoDatabase;
 
 
@@ -132,6 +133,13 @@ async function startExpressServer() {
       if (req.body.deleteOldProperties == true) {
         for (let j = 0; j < req.body.schemaIDsToDelete.length; j++) {
           schemaIDToDelete = req.body.schemaIDsToDelete[j];
+          if (schemaFile[newProjectName][req.body.schemaIDsToDelete[j]].type=="File") {
+            let filesToDelete = await MongoDatabase.db("IssueTracker").collection(newProjectName).find({},{"projection":{[req.body.schemaIDsToDelete[j]]:1,"_id":0}}).toArray();
+            for (let k=1; k<filesToDelete.length;k++) {
+              fs.unlinkSync("./files/"+newProjectName+"/"+filesToDelete[k][req.body.schemaIDsToDelete[j]].fileID);
+            }
+            
+          }
           await MongoDatabase.db("IssueTracker").collection(newProjectName).updateMany({}, {
             $unset: {
               [schemaIDToDelete]: ""
@@ -231,6 +239,7 @@ async function startExpressServer() {
       let issueID = req.body.issueID;
       let propertyName = req.body.propertyName;
       console.log("Getting Project File: " + req.body.fileName+" from "+req.body.projectName);
+      // TODO: fix file request
       let fileID = (await MongoDatabase.db("IssueTracker").collection(req.body.projectName).findOne({_id : ObjectId(issueID)}))[propertyName].fileID;
       res.sendFile(__dirname +"/files/"+req.body.projectName+"/"+fileID);
     } catch (err) {
@@ -254,7 +263,6 @@ async function startExpressServer() {
       let path = './files/' +projectName +"/";
       
       console.log("Updating Project: " + JSON.stringify(projectName));
-      res.send("Updating Project")
 
       let updatedTime = new Date(Date.now());
       await editEditedTime(projectName, updatedTime);
@@ -262,7 +270,6 @@ async function startExpressServer() {
       // Delete files that need deleting
       console.log("Deleting Project Files from Project: "+projectName);
       
-      console.log(JSON.stringify(req.body.projectFileIDsToDelete));
       for (let i=0;i<req.body.projectFileIDsToDelete.length;i++) {
         let fileID = req.body.projectFileIDsToDelete[i];
         fs.unlinkSync(path+fileID, (err => {
@@ -272,25 +279,59 @@ async function startExpressServer() {
 
       
       project = req.body.project;
-      let numberOfFilesUploaded = 0;
       for (let i = 0; i < project.length; i++) {
 
         if (project[i]._id == "Not In Database") {
           // Send to database if new property
           delete project[i]._id;
-          await createNewIssue(projectName, project[i])
+          let filesUploaded = (await MongoDatabase.db("IssueTracker").collection(projectName).findOne({})).filesUploaded;
+          let keys = Object.keys(project[i]);
+          let tempFilesUploaded = 0;
+          for (let j = 0; j < keys.length; j++) {
+            if (req.body.schema[req.body.schemaKeys[j+1]].type=="File") {
+              let fileID = filesUploaded+project[i][keys[j]].substring(project[i][keys[j]].lastIndexOf("."), project[i][keys[j]].length);
+              project[i][req.body.schemaKeys[j+1]] = {"fileName":project[i][req.body.schemaKeys[j+1]],"fileID":fileID};
+              await MongoDatabase.db("IssueTracker").collection(projectName).updateOne({}
+                ,{
+                  $set: {
+                    "filesUploaded": filesUploaded+1
+                  }
+                }, function (err, res) {
+                  if (err) throw err;
+                });
+              
+              fs.renameSync("./files/"+projectName+"/"+project[i][req.body.schemaKeys[j+1]].fileName+(tempFilesUploaded), "./files/"+projectName+"/"+fileID);
+              filesUploaded+=1; 
+              tempFilesUploaded+=1;
+            }
 
-          //TODO: fix this for files
+            
+          }
+          await createNewIssue(projectName, project[i]);
+
         } else {
           
           // Send to database if existing property
           let ID = project[i]._id;
           delete project[i]._id;
           let keys = Object.keys(project[i]);
+          let tempFilesUploaded = 0;
           for (let j = 0; j < keys.length; j++) {
             if (req.body.schema[req.body.schemaKeys[j+1]].type=="File") {
               let filesUploaded = (await MongoDatabase.db("IssueTracker").collection(projectName).findOne({})).filesUploaded;
-              await editProperty(projectName, ID, keys[j], {"fileName":project[i][keys[j]],"fileID":(filesUploaded+project[i][keys[j]].substring(project[i][keys[j]].lastIndexOf("."), project[i][keys[j]].length))});
+              let fileID = filesUploaded+project[i][keys[j]].substring(project[i][keys[j]].lastIndexOf("."), project[i][keys[j]].length);
+              await editProperty(projectName, ID, keys[j], {"fileName":project[i][keys[j]],"fileID":fileID});
+              await MongoDatabase.db("IssueTracker").collection(projectName).updateOne({}
+                ,{
+                  $set: {
+                    "filesUploaded": filesUploaded+1
+                  }
+                }, function (err, res) {
+                  if (err) throw err;
+                });
+                fs.renameSync("./files/"+projectName+"/"+project[i][req.body.schemaKeys[j+1]]+(tempFilesUploaded), "./files/"+projectName+"/"+fileID);
+                filesUploaded+=1; 
+                tempFilesUploaded+=1;
               
             } else {
               await editProperty(projectName, ID, keys[j], project[i][keys[j]]);
@@ -303,12 +344,10 @@ async function startExpressServer() {
       // Delete any deleted issues
       await deleteIssues(req.body.issueIDsToDelete, projectName);
 
-        
+      res.send("Success");
     } catch (err) {
       console.log(err);
-      res.send({
-        "Error": err
-      });
+
     }
 
 
@@ -318,6 +357,7 @@ async function startExpressServer() {
   // Update project files
   app.post('/updateProjectFiles', async function (req, res) {
     try {
+      
       // Vars
       let files = req.files;
       let fileKeys = Object.keys(files);
@@ -330,30 +370,21 @@ async function startExpressServer() {
         fs.mkdirSync("./files/"+projectName);
 
       }
-        
+      
       // Get file and put into folder
-      let filesUploaded = (await MongoDatabase.db("IssueTracker").collection(projectName).findOne({})).filesUploaded;
+      let fileID = (await MongoDatabase.db("IssueTracker").collection(projectName).findOne({})).filesUploaded;
       
       for (let i=0;i<fileKeys.length;i++) {
         let fileName = files[fileKeys[i]].name;
-        let fileType = fileName.substring(fileName.lastIndexOf("."), fileName.length);
-        files[fileKeys[i]].mv(path + filesUploaded + fileType);
+        files[fileKeys[i]].mv(path + fileName+i);
         
         
 
-        await MongoDatabase.db("IssueTracker").collection(projectName).updateOne({}
-        ,{
-          $set: {
-            "filesUploaded": filesUploaded
-          }
-        }, function (err, res) {
-          if (err) throw err;
-        });
-        filesUploaded+=1;  
+         
       }
       
 
-      res.sendStatus(200);
+      res.send("Success");
     } catch (err) {
       console.log(err);
       res.send({
@@ -461,6 +492,7 @@ async function getProject(projectName) {
 async function createNewProject(projectName) {
   console.log("Creating New Project");
   let dbo = MongoDatabase.db("IssueTracker");
+  fs.mkdirSync("./files/"+projectName);
   await dbo.createCollection(projectName, function (err, res) {
     if (err) throw err;
     console.log("Project Created");
@@ -516,7 +548,13 @@ async function deleteProject(projectName) {
   console.log("Deleting Project: "+projectName);
   let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
   await MongoDatabase.db("IssueTracker").collection(projectName).drop();
+  let directory = "./files/"+projectName+"/";
 
+  for (fileToDelete of fs.readdirSync(directory)) {
+    console.log(fileToDelete)
+    fs.unlinkSync(directory+fileToDelete);
+  }
+  fs.rmdirSync("./files/"+projectName);
   delete schemaFile[projectName];
   fs.writeFileSync("schema.json", JSON.stringify(schemaFile));
 

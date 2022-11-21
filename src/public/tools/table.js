@@ -10,7 +10,6 @@ class table {
     this.rows = [];
     this.cells = [];
     this.cellChildren = [];
-    this.tableData = tableData;
     this.schemaKeys = Object.keys(schema);
     this.schemaDataTypes = [];
     this.tableHeader = this.table.createTHead();
@@ -35,8 +34,8 @@ class table {
 
 
     // Create body
-    for (let i = 1; i < this.tableData.length + 1; i++) {
-      this.addRow(this.tableData[i - 1], schema)
+    for (let i = 1; i < tableData.length+1; i++) {
+      this.addRow(tableData[i-1], schema)
     }
 
 
@@ -141,7 +140,6 @@ class table {
       } else if (this.schemaDataTypes[j] == "File") {
         // Create file cell
         this.cellChildren[i].push(document.createElement("div"));
-        let fileToRequest = this.tableData[this.schemaKeys[j]].fileName;
 
         this.cellChildren[i][j].appendChild(document.createElement('img'));
         this.cellChildren[i][j].appendChild(document.createElement("div"));
@@ -151,7 +149,20 @@ class table {
         this.cellChildren[i][j].children[1].appendChild(document.createElement("input"));
         this.cellChildren[i][j].children[1].appendChild(document.createElement("br"));
         this.cellChildren[i][j].children[1].appendChild(document.createElement("button"));
-        this.cellChildren[i][j].fileID = this.tableData[this.schemaKeys[j]].file;
+
+
+        let fileToRequest;
+
+        if (this.tableData[this.schemaKeys[j]]!=undefined) {
+          this.cellChildren[i][j].fileID = this.tableData[this.schemaKeys[j]].fileID;
+
+          fileToRequest = this.tableData[this.schemaKeys[j]].fileName;
+        } else {
+          this.cellChildren[i][j].fileID = undefined;
+          
+        }
+        
+
         // Get file
         if (fileToRequest) {
           let index = fileToRequest.indexOf(".");
@@ -196,16 +207,22 @@ class table {
 
         // Set download link
         this.cellChildren[i][j].children[1].children[0].type = "file";
-        this.cellChildren[i][j].children[1].children[2].onclick = function() { if (fileToRequest) { requestFile(fileToRequest) } };;
-        this.cellChildren[i][j].children[1].children[2].innerHTML = "Download " + this.tableData[this.schemaKeys[j]].fileName;
-        this.cellChildren[i][j].children[1].children[2].value = "Download " + this.tableData[this.schemaKeys[j]].fileName;
+        this.cellChildren[i][j].children[1].children[2].onclick = function() { if (fileToRequest) { requestFile(fileToRequest) } };
+        if (this.tableData[this.schemaKeys[j]]!=undefined) {
+          this.cellChildren[i][j].children[1].children[2].innerHTML = "Download " + this.tableData[this.schemaKeys[j]].fileName;
+          this.cellChildren[i][j].children[1].children[2].value = "Download " + this.tableData[this.schemaKeys[j]].fileName;
+        } else {
+          this.cellChildren[i][j].children[1].children[2].innerHTML = "Download "
+        }
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
 
 
 
-        let previousFileName = this.cellChildren[i][j].children[1].children[2].value.slice(9);
-
-        this.cellChildren[i][j].children[1].children[0].onchange = function() { prepareDeletionOfOldFile(previousFileName) };
+        let fileID = this.cellChildren[i][j].fileID;
+        if (this.cellChildren[i][0].innerHTML!="Not In Database" && this.tableData[this.schemaKeys[j]]!=undefined) {
+          this.cellChildren[i][j].children[1].children[0].onchange = function() { prepareDeletionOfOldFile(fileID) };
+        }
+        
 
 
       }
@@ -240,6 +257,7 @@ class table {
     this.project = [];
     this.files = [];
     this.fileNames = [];
+    this.fileIDs = [];
     for (let i = 1; i < this.cellChildren.length; i++) {
       this.project.push({});
       for (let j = 0; j < this.cellChildren[i].length; j++) {
@@ -249,6 +267,7 @@ class table {
             this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].children[1].children[0].files[0].name;
             this.files.push(this.cellChildren[i][j].children[1].children[0].files[0]);
             this.fileNames.push(this.cellChildren[i][j].children[1].children[0].files[0].name);
+            this.fileIDs.push(this.cellChildren[i][j].fileID);
 
           } else {
             this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].children[1].children[2].innerHTML.substring(9);

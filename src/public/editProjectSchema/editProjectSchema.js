@@ -29,6 +29,7 @@ let schemaIDsToDelete = [];
 
 // Display schema in editable table using inputs
 function displaySchema(schema) {
+  
   console.log("Displaying schema");
   // Define vars and schema for table
   projectSchema = schema;
@@ -73,7 +74,6 @@ function displaySchema(schema) {
     tableData[i - 1][tableSchemaKeys[3]] = projectSchema[schemaKeys[i]].prexistingChoices;
     tableData[i - 1][tableSchemaKeys[3]] = "";
   }
-
   schemaTable = new table(tableData, tableSchema)
 
 }
