@@ -90,7 +90,7 @@ function removeIssue() {
 function updateProjectData(project) {
   console.log("Updating project");
   
-  
+  alert(JSON.stringify(project))
 
   // Post request
   fetch("/updateProject", {
@@ -124,6 +124,7 @@ function updateProject() {
   for (let i=0;i<files.length;i++) {
     fd.append(fileIDs[i], files[i]);
   }
+
   console.log("Updating project files");
   if (files.length>0) {
     fetch("/updateProjectFiles?"+ new URLSearchParams({

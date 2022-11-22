@@ -150,7 +150,7 @@ async function startExpressServer() {
 
       // Set schema if it exists
       if (schemaFile.hasOwnProperty(newProjectName)) {
-          setSchema(newProjectName, schema);
+        updateSchema(newProjectName, oldProjectName, schema);
       }
 
       // Rename properties in database if required
@@ -567,6 +567,25 @@ function setSchema(projectName, schema) {
   if (projectName != "Default") {
     let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
     schemaFile[projectName] = schema;
+    console.log(schemaFile);
+    fs.writeFileSync("schema.json", JSON.stringify(schemaFile));
+  } else {
+      console.log("Project name invalid, please choose a different name")
+  }
+
+
+}
+
+// Set schema for specific project
+function updateSchema(projectName, oldProjectName, schema) {
+  console.log("Setting Schema");
+  if (projectName != "Default") {
+    let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
+    schemaFile[projectName] = schema;
+    if (oldProjectName!=projectName) {
+      delete schemaFile[oldProjectName];
+    }
+    
     console.log(schemaFile);
     fs.writeFileSync("schema.json", JSON.stringify(schemaFile));
   } else {
