@@ -115,7 +115,7 @@ async function startExpressServer() {
             "type": "Multiple Choice"
           };
 
-          if (i < oldSchemaKeys.length) {
+          if (i < oldSchemaKeys.length && !req.body.schemaIDsToDelete.includes(oldSchemaKeys[i])) {
             schema[submittedSchemaKeys[i]].options = oldSchema[oldSchemaKeys[i]].options;
           } else {
             schema[submittedSchemaKeys[i]].options = [];
@@ -299,10 +299,13 @@ async function startExpressServer() {
                 }, function (err, res) {
                   if (err) throw err;
                 });
+
+              if (project[i][req.body.schemaKeys[j+1]].fileName!="undefined") {
+                fs.renameSync("./files/"+projectName+"/"+project[i][req.body.schemaKeys[j+1]].fileName+(tempFilesUploaded), "./files/"+projectName+"/"+fileID);
+                filesUploaded+=1; 
+                tempFilesUploaded+=1;
+              }
               
-              fs.renameSync("./files/"+projectName+"/"+project[i][req.body.schemaKeys[j+1]].fileName+(tempFilesUploaded), "./files/"+projectName+"/"+fileID);
-              filesUploaded+=1; 
-              tempFilesUploaded+=1;
             }
 
             
@@ -318,23 +321,29 @@ async function startExpressServer() {
           let tempFilesUploaded = 0;
           for (let j = 0; j < keys.length; j++) {
             if (req.body.schema[req.body.schemaKeys[j+1]].type=="File") {
-              let filesUploaded = (await MongoDatabase.db("IssueTracker").collection(projectName).findOne({})).filesUploaded;
-              let fileID = filesUploaded+project[i][keys[j]].substring(project[i][keys[j]].lastIndexOf("."), project[i][keys[j]].length);
-              await editProperty(projectName, ID, keys[j], {"fileName":project[i][keys[j]],"fileID":fileID});
-              await MongoDatabase.db("IssueTracker").collection(projectName).updateOne({}
-                ,{
-                  $set: {
-                    "filesUploaded": filesUploaded+1
-                  }
-                }, function (err, res) {
-                  if (err) throw err;
-                });
-                fs.renameSync("./files/"+projectName+"/"+project[i][req.body.schemaKeys[j+1]]+(tempFilesUploaded), "./files/"+projectName+"/"+fileID);
-                filesUploaded+=1; 
-                tempFilesUploaded+=1;
+              if (project[i][req.body.schemaKeys[j+1]]!=(await MongoDatabase.db("IssueTracker").collection(projectName).findOne({_id : ObjectId(ID)}))[keys[j]].fileName) {
+                let filesUploaded = (await MongoDatabase.db("IssueTracker").collection(projectName).findOne({})).filesUploaded;
+                let fileID = filesUploaded+project[i][keys[j]].substring(project[i][keys[j]].lastIndexOf("."), project[i][keys[j]].length);
+                await editIssue(projectName, ID, keys[j], {"fileName":project[i][keys[j]],"fileID":fileID});
+                await MongoDatabase.db("IssueTracker").collection(projectName).updateOne({}
+                  ,{
+                    $set: {
+                      "filesUploaded": filesUploaded+1
+                    }
+                  }, function (err, res) {
+                    if (err) throw err;
+                  });
+                  
+                if (project[i][req.body.schemaKeys[j+1]]!="undefined") {
+                  fs.renameSync("./files/"+projectName+"/"+project[i][req.body.schemaKeys[j+1]]+(tempFilesUploaded), "./files/"+projectName+"/"+fileID);
+                  filesUploaded+=1; 
+                  tempFilesUploaded+=1;
+                }
+              }
+              
               
             } else {
-              await editProperty(projectName, ID, keys[j], project[i][keys[j]]);
+              await editIssue(projectName, ID, keys[j], project[i][keys[j]]);
             }
             
           }
@@ -513,12 +522,12 @@ async function createNewIssue(projectName, issueData) {
 }
 
 // Edit issue in a project
-async function editProperty(projectName, propertyID, propertyName, propertyData) {
-  console.log("Editing Property " + propertyName + " from " + propertyID + " from " + projectName + " and setting to " + propertyData);
+async function editIssue(projectName, issueID, propertyName, propertyData) {
+  console.log("Editing Property " + propertyName + " from " + issueID + " from " + projectName + " and setting to " + propertyData);
 
   let dbo = MongoDatabase.db("IssueTracker");
   await dbo.collection(projectName).updateOne({
-    _id: ObjectId(propertyID.toString())
+    _id: ObjectId(issueID.toString())
   }, {
     $set: {
       [propertyName]: propertyData

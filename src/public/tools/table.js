@@ -219,7 +219,7 @@ class table {
 
 
         let fileID = this.cellChildren[i][j].fileID;
-        if (this.cellChildren[i][0].innerHTML!="Not In Database" && this.tableData[this.schemaKeys[j]]!=undefined) {
+        if (this.cellChildren[i][0].innerHTML!="Not In Database" && this.tableData[this.schemaKeys[j]].fileName!="undefined") {
           this.cellChildren[i][j].children[1].children[0].onchange = function() { prepareDeletionOfOldFile(fileID) };
         }
         

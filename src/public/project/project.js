@@ -90,8 +90,6 @@ function removeIssue() {
 function updateProjectData(project) {
   console.log("Updating project");
   
-  alert(JSON.stringify(project))
-
   // Post request
   fetch("/updateProject", {
     method: 'POST',
