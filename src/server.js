@@ -136,7 +136,10 @@ async function startExpressServer() {
           if (schemaFile[newProjectName][req.body.schemaIDsToDelete[j]].type=="File") {
             let filesToDelete = await MongoDatabase.db("IssueTracker").collection(newProjectName).find({},{"projection":{[req.body.schemaIDsToDelete[j]]:1,"_id":0}}).toArray();
             for (let k=1; k<filesToDelete.length;k++) {
-              fs.unlinkSync("./files/"+newProjectName+"/"+filesToDelete[k][req.body.schemaIDsToDelete[j]].fileID);
+              if (filesToDelete[k][req.body.schemaIDsToDelete[j]]!=undefined) {
+                fs.unlinkSync("./files/"+newProjectName+"/"+filesToDelete[k][req.body.schemaIDsToDelete[j]].fileID);
+              }
+              
             }
             
           }
@@ -299,7 +302,7 @@ async function startExpressServer() {
                 }, function (err, res) {
                   if (err) throw err;
                 });
-
+              console.log(project[i][req.body.schemaKeys[j+1]].fileName);
               if (project[i][req.body.schemaKeys[j+1]].fileName!="undefined") {
                 fs.renameSync("./files/"+projectName+"/"+project[i][req.body.schemaKeys[j+1]].fileName+(tempFilesUploaded), "./files/"+projectName+"/"+fileID);
                 filesUploaded+=1; 
@@ -321,7 +324,29 @@ async function startExpressServer() {
           let tempFilesUploaded = 0;
           for (let j = 0; j < keys.length; j++) {
             if (req.body.schema[req.body.schemaKeys[j+1]].type=="File") {
-              if (project[i][req.body.schemaKeys[j+1]]!=(await MongoDatabase.db("IssueTracker").collection(projectName).findOne({_id : ObjectId(ID)}))[keys[j]].fileName) {
+              if ((await MongoDatabase.db("IssueTracker").collection(projectName).findOne({_id : ObjectId(ID)}))[keys[j]]!=undefined) {
+                if (project[i][req.body.schemaKeys[j+1]]!=(await MongoDatabase.db("IssueTracker").collection(projectName).findOne({_id : ObjectId(ID)}))[keys[j]].fileName) {
+                  let filesUploaded = (await MongoDatabase.db("IssueTracker").collection(projectName).findOne({})).filesUploaded;
+                  let fileID = filesUploaded+project[i][keys[j]].substring(project[i][keys[j]].lastIndexOf("."), project[i][keys[j]].length);
+                  await editIssue(projectName, ID, keys[j], {"fileName":project[i][keys[j]],"fileID":fileID});
+                  await MongoDatabase.db("IssueTracker").collection(projectName).updateOne({}
+                    ,{
+                      $set: {
+                        "filesUploaded": filesUploaded+1
+                      }
+                    }, function (err, res) {
+                      if (err) throw err;
+                    });
+                  console.log(project[i][req.body.schemaKeys[j+1]].fileName);
+                  if (project[i][req.body.schemaKeys[j+1]]!="undefined") {
+                    fs.renameSync("./files/"+projectName+"/"+project[i][req.body.schemaKeys[j+1]]+(tempFilesUploaded), "./files/"+projectName+"/"+fileID);
+                    filesUploaded+=1; 
+                    tempFilesUploaded+=1;
+                  }
+                }
+                
+                
+              } else {
                 let filesUploaded = (await MongoDatabase.db("IssueTracker").collection(projectName).findOne({})).filesUploaded;
                 let fileID = filesUploaded+project[i][keys[j]].substring(project[i][keys[j]].lastIndexOf("."), project[i][keys[j]].length);
                 await editIssue(projectName, ID, keys[j], {"fileName":project[i][keys[j]],"fileID":fileID});
@@ -333,18 +358,16 @@ async function startExpressServer() {
                   }, function (err, res) {
                     if (err) throw err;
                   });
-                  
                 if (project[i][req.body.schemaKeys[j+1]]!="undefined") {
                   fs.renameSync("./files/"+projectName+"/"+project[i][req.body.schemaKeys[j+1]]+(tempFilesUploaded), "./files/"+projectName+"/"+fileID);
                   filesUploaded+=1; 
                   tempFilesUploaded+=1;
                 }
               }
-              
-              
             } else {
               await editIssue(projectName, ID, keys[j], project[i][keys[j]]);
             }
+              
             
           }
 
