@@ -72,11 +72,15 @@ function addIssue() {
 // Remove issue
 function removeIssue(issueIndex) {
   console.log("Removing issue");
-  issueIDsToDelete.push(projectTable.cellChildren[issueIndex][0].value);
+  if (projectTable.cellChildren[issueIndex-1][0].value!="Not In Database")
+  issueIDsToDelete.push(projectTable.cellChildren[issueIndex-1][0].value);
 
   for (let i=0;i<schemaKeys.length; i++) {
     if (schema[schemaKeys[i]].type== "File") {
-      prepareDeletionOfOldFile(projectTable.cellChildren[issueIndex][i].fileID);
+      if (projectTable.cellChildren[issueIndex-1][i].fileID!=undefined) {
+        prepareDeletionOfOldFile(projectTable.cellChildren[issueIndex-1][i].fileID);
+      }
+      
 
     }
   }
@@ -114,10 +118,10 @@ function updateProject() {
   // Setup files as formdata
   let project = projectTable.exportTable(schema);
   let files = projectTable.files;
-  let fileIDs = projectTable.fileIDs;
+  let fileNames = projectTable.fileNames;
   var fd = new FormData();
   for (let i=0;i<files.length;i++) {
-    fd.append(fileIDs[i], files[i]);
+    fd.append(fileNames[i], files[i]);
   }
 
   console.log("Updating project files");

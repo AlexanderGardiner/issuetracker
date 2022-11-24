@@ -405,6 +405,7 @@ async function startExpressServer() {
       // Get file and put into folder
       for (let i=0;i<fileKeys.length;i++) {
         let fileName = files[fileKeys[i]].name;
+        console.log("Recieved file: " + fileName)
         files[fileKeys[i]].mv(path + fileName+i);
         
         

@@ -72,7 +72,9 @@ class table {
 
         this.cells[i][j].appendChild(document.createElement("button"));
         this.cells[i][j].children[1].innerHTML = "Delete";
-        this.cells[i][j].children[1].onclick = function() { removeIssue(i) };
+        this.cells[i][j].children[1].setAttribute("issueIndex", i);
+        let issueIndex = i;
+        this.cells[i][j].children[1].onclick = function(issue) {removeIssue(this.parentElement.parentElement.rowIndex)};
 
       } else if (this.schemaDataTypes[j] == "Text") {
         // Create text cell
@@ -251,14 +253,14 @@ class table {
       // for (let i = 0; i < this.cellChildren.length; i++) {
       //   this.cellChildren[this.cellChildren.length - 1][0].remove();
       // }
-    this.cellChildren.splice(issue-1);
+    this.cellChildren.splice(parseInt(issue)-1,1);
     // for (let i = 0; i < this.cells.length; i++) {
     //   this.cells[this.cells.length - 1][0].remove();
     // }
 
-    this.cells.splice(issue-1);
-    this.rows[issue].remove();
-    this.rows.splice(issue-1)
+    this.cells.splice(parseInt(issue)-1,1);
+    this.rows[parseInt(issue)].remove();
+    this.rows.splice(parseInt(issue),1)
     // }
   }
 
