@@ -69,6 +69,11 @@ class table {
         this.cellChildren[i][j].innerHTML = this.tableData[this.schemaKeys[j]];
         this.cellChildren[i][j].setAttribute("readonly", "true");
 
+
+        this.cells[i][j].appendChild(document.createElement("button"));
+        this.cells[i][j].children[1].innerHTML = "Delete";
+        this.cells[i][j].children[1].onclick = function() { removeIssue(i) };
+
       } else if (this.schemaDataTypes[j] == "Text") {
         // Create text cell
         this.cellChildren[i].push(document.createElement("textarea"));
@@ -152,6 +157,8 @@ class table {
 
 
         let fileToRequest;
+        let issueID;
+        let propertyName;
 
         if (this.tableData[this.schemaKeys[j]]!=undefined) {
           this.cellChildren[i][j].fileID = this.tableData[this.schemaKeys[j]].fileID;
@@ -170,8 +177,8 @@ class table {
           if (index >= 0) {
             filePath = fileToRequest.substring(index, fileToRequest.length);
           }
-          let issueID = this.cellChildren[i][0].value;
-          let propertyName = this.schemaKeys[j];
+          issueID = this.cellChildren[i][0].value;
+          propertyName = this.schemaKeys[j];
           // Display file if image
           if (filePath == ".png" || filePath == ".jpg" || filePath == ".jpeg") {
             fetch("/getProjectFile", {
@@ -207,7 +214,7 @@ class table {
 
         // Set download link
         this.cellChildren[i][j].children[1].children[0].type = "file";
-        this.cellChildren[i][j].children[1].children[2].onclick = function() { if (fileToRequest) { requestFile(fileToRequest) } };
+        this.cellChildren[i][j].children[1].children[2].onclick = function() { if (fileToRequest) { requestFile(fileToRequest, issueID, propertyName) } };
         if (this.tableData[this.schemaKeys[j]]!=undefined) {
           this.cellChildren[i][j].children[1].children[2].innerHTML = "Download " + this.tableData[this.schemaKeys[j]].fileName;
           this.cellChildren[i][j].children[1].children[2].value = "Download " + this.tableData[this.schemaKeys[j]].fileName;
@@ -233,24 +240,26 @@ class table {
       this.cells[i][j].classList.add("tableCell");
 
     }
+
+    
   }
 
   // Remove row 
-  removeRow() {
+  removeRow(issue) {
     console.log("Removing row");
-    if (this.cellChildren.length > 1 && this.cells.length > 1 && this.rows.length > 1) {
-      for (let i = 0; i < this.cellChildren.length; i++) {
-        this.cellChildren[this.cellChildren.length - 1][0].remove();
-      }
-      this.cellChildren.pop();
-      for (let i = 0; i < this.cells.length; i++) {
-        this.cells[this.cells.length - 1][0].remove();
-      }
+    // if (this.cellChildren.length > 1 && this.cells.length > 1 && this.rows.length > 1) {
+      // for (let i = 0; i < this.cellChildren.length; i++) {
+      //   this.cellChildren[this.cellChildren.length - 1][0].remove();
+      // }
+    this.cellChildren.splice(issue-1);
+    // for (let i = 0; i < this.cells.length; i++) {
+    //   this.cells[this.cells.length - 1][0].remove();
+    // }
 
-      this.cells.pop();
-      this.rows[this.rows.length - 1].remove();
-      this.rows.pop()
-    }
+    this.cells.splice(issue-1);
+    this.rows[issue].remove();
+    this.rows.splice(issue-1)
+    // }
   }
 
   // Export table data

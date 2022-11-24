@@ -242,7 +242,6 @@ async function startExpressServer() {
       let issueID = req.body.issueID;
       let propertyName = req.body.propertyName;
       console.log("Getting Project File: " + req.body.fileName+" from "+req.body.projectName);
-      // TODO: fix file request
       let fileID = (await MongoDatabase.db("IssueTracker").collection(req.body.projectName).findOne({_id : ObjectId(issueID)}))[propertyName].fileID;
       res.sendFile(__dirname +"/files/"+req.body.projectName+"/"+fileID);
     } catch (err) {
@@ -404,8 +403,6 @@ async function startExpressServer() {
       }
       
       // Get file and put into folder
-      let fileID = (await MongoDatabase.db("IssueTracker").collection(projectName).findOne({})).filesUploaded;
-      
       for (let i=0;i<fileKeys.length;i++) {
         let fileName = files[fileKeys[i]].name;
         files[fileKeys[i]].mv(path + fileName+i);

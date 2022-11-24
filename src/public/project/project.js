@@ -19,7 +19,6 @@ fetch("/getProject", {
 .then(response => response.json())
 .then(data => displayProject(data));
 
-// Display project
 // Define global vars
 let projectTable;
 let schemaKeys;
@@ -71,19 +70,17 @@ function addIssue() {
 }
 
 // Remove issue
-function removeIssue() {
+function removeIssue(issueIndex) {
   console.log("Removing issue");
-  if (projectTable.cellChildren.length>0) {
-    issueIDsToDelete.push(projectTable.cellChildren[projectTable.cellChildren.length - 1][0].value);
-  }
+  issueIDsToDelete.push(projectTable.cellChildren[issueIndex][0].value);
 
   for (let i=0;i<schemaKeys.length; i++) {
     if (schema[schemaKeys[i]].type== "File") {
-      prepareDeletionOfOldFile(projectTable.cellChildren[projectTable.cellChildren.length - 1][i].fileID);
+      prepareDeletionOfOldFile(projectTable.cellChildren[issueIndex][i].fileID);
 
     }
   }
-  projectTable.removeRow();
+  projectTable.removeRow(issueIndex);
 }
 
 // Update project to server
@@ -144,7 +141,7 @@ function prepareDeletionOfOldFile(fileID) {
   projectFileIDsToDelete.push(fileID);
 }
 // Get file from server
-function requestFile(fileName) {
+function requestFile(fileName,issueID, propertyName) {
   console.log("Reqeusting file");
   downloadedFileName = fileName;
 
@@ -158,7 +155,9 @@ function requestFile(fileName) {
     },
     body: JSON.stringify({
       "projectName": projectName,
-      "fileName":fileName
+      "fileName": fileName,
+      "issueID": issueID,
+      "propertyName": propertyName
     })
   })
   .then(response => response.blob())
