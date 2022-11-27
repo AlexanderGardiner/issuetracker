@@ -90,7 +90,6 @@ function removeIssue(issueIndex) {
 // Update project to server
 function updateProjectData(project) {
   console.log("Updating project");
-  
   // Post request
   fetch("/updateProject", {
     method: 'POST',
@@ -105,7 +104,7 @@ function updateProjectData(project) {
       "issueIDsToDelete": issueIDsToDelete,
       "projectFileIDsToDelete": projectFileIDsToDelete,
       "schema": schema,
-      "schemaKeys": schemaKeys
+      "schemaKeys": schemaKeys,
     })
   })
   .then((response) => response.text())
@@ -121,7 +120,7 @@ function updateProject() {
   let fileNames = projectTable.fileNames;
   var fd = new FormData();
   for (let i=0;i<files.length;i++) {
-    fd.append(fileNames[i], files[i]);
+    fd.append((fileNames[i]+i.toString()), files[i],(fileNames[i]+i.toString()));
   }
 
   console.log("Updating project files");

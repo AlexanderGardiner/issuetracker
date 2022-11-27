@@ -249,15 +249,7 @@ class table {
   // Remove row 
   removeRow(issue) {
     console.log("Removing row");
-    // if (this.cellChildren.length > 1 && this.cells.length > 1 && this.rows.length > 1) {
-      // for (let i = 0; i < this.cellChildren.length; i++) {
-      //   this.cellChildren[this.cellChildren.length - 1][0].remove();
-      // }
     this.cellChildren.splice(parseInt(issue)-1,1);
-    // for (let i = 0; i < this.cells.length; i++) {
-    //   this.cells[this.cells.length - 1][0].remove();
-    // }
-
     this.cells.splice(parseInt(issue)-1,1);
     this.rows[parseInt(issue)].remove();
     this.rows.splice(parseInt(issue),1)

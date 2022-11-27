@@ -263,7 +263,7 @@ async function startExpressServer() {
       // Vars
       let projectName = req.body.projectName;
       let path = './files/' +projectName +"/";
-      
+      let tempFilesUploaded = 0;
       console.log("Updating Project: " + JSON.stringify(projectName));
 
       let updatedTime = new Date(Date.now());
@@ -281,6 +281,7 @@ async function startExpressServer() {
 
       
       project = req.body.project;
+
       for (let i = 0; i < project.length; i++) {
 
         if (project[i]._id == "Not In Database") {
@@ -288,7 +289,6 @@ async function startExpressServer() {
           delete project[i]._id;
           let filesUploaded = (await MongoDatabase.db("IssueTracker").collection(projectName).findOne({})).filesUploaded;
           let keys = Object.keys(project[i]);
-          let tempFilesUploaded = 0;
           for (let j = 0; j < keys.length; j++) {
             if (req.body.schema[req.body.schemaKeys[j+1]].type=="File") {
               let fileID = filesUploaded+project[i][keys[j]].substring(project[i][keys[j]].lastIndexOf("."), project[i][keys[j]].length);
@@ -302,8 +302,9 @@ async function startExpressServer() {
                   if (err) throw err;
                 });
               console.log(project[i][req.body.schemaKeys[j+1]].fileName);
-              if (project[i][req.body.schemaKeys[j+1]].fileName!="undefined") {
-                fs.renameSync("./files/"+projectName+"/"+project[i][req.body.schemaKeys[j+1]].fileName+(tempFilesUploaded), "./files/"+projectName+"/"+fileID);
+              console.log(tempFilesUploaded)
+              if (project[i][req.body.schemaKeys[j+1]]!="undefined") {
+                fs.renameSync("./files/"+projectName+"/"+project[i][req.body.schemaKeys[j+1]]+(tempFilesUploaded.toString()), "./files/"+projectName+"/"+fileID);
                 filesUploaded+=1; 
                 tempFilesUploaded+=1;
               }
@@ -320,7 +321,7 @@ async function startExpressServer() {
           let ID = project[i]._id;
           delete project[i]._id;
           let keys = Object.keys(project[i]);
-          let tempFilesUploaded = 0;
+          
           for (let j = 0; j < keys.length; j++) {
             if (req.body.schema[req.body.schemaKeys[j+1]].type=="File") {
               if ((await MongoDatabase.db("IssueTracker").collection(projectName).findOne({_id : ObjectId(ID)}))[keys[j]]!=undefined) {
@@ -336,9 +337,9 @@ async function startExpressServer() {
                     }, function (err, res) {
                       if (err) throw err;
                     });
-                  console.log(project[i][req.body.schemaKeys[j+1]].fileName);
+
                   if (project[i][req.body.schemaKeys[j+1]]!="undefined") {
-                    fs.renameSync("./files/"+projectName+"/"+project[i][req.body.schemaKeys[j+1]]+(tempFilesUploaded), "./files/"+projectName+"/"+fileID);
+                    fs.renameSync("./files/"+projectName+"/"+project[i][req.body.schemaKeys[j+1]]+(tempFilesUploaded.toString()), "./files/"+projectName+"/"+fileID);
                     filesUploaded+=1; 
                     tempFilesUploaded+=1;
                   }
@@ -401,15 +402,11 @@ async function startExpressServer() {
         fs.mkdirSync("./files/"+projectName);
 
       }
-      
       // Get file and put into folder
       for (let i=0;i<fileKeys.length;i++) {
         let fileName = files[fileKeys[i]].name;
         console.log("Recieved file: " + fileName)
-        files[fileKeys[i]].mv(path + fileName+i);
-        
-        
-
+        files[fileKeys[i]].mv(path + fileName);
          
       }
       
@@ -544,7 +541,7 @@ async function createNewIssue(projectName, issueData) {
 
 // Edit issue in a project
 async function editIssue(projectName, issueID, propertyName, propertyData) {
-  console.log("Editing Property " + propertyName + " from " + issueID + " from " + projectName + " and setting to " + propertyData);
+  console.log("Editing Property " + propertyName + " from " + issueID + " from " + projectName + " and setting to " + JSON.stringify(propertyData));
 
   let dbo = MongoDatabase.db("IssueTracker");
   await dbo.collection(projectName).updateOne({
