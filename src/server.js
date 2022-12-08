@@ -17,8 +17,8 @@ const fileupload = require("express-fileupload");
 process.chdir("src");;
 
 // Vars for mongodb database
-//var url = "mongodb+srv://Main:8dmfv2tXNor2HG9T@issuetracker.9w0hzlx.mongodb.net/?retryWrites=true&w=majority";
-var url = "mongodb://localhost:27017";
+var url = "mongodb+srv://Main:8dmfv2tXNor2HG9T@issuetracker.9w0hzlx.mongodb.net/?retryWrites=true&w=majority";
+//var url = "mongodb://localhost:27017";
 var MongoDatabase;
 
 
@@ -46,21 +46,22 @@ async function startExpressServer() {
   app.post('/getProjectSchema', function (req, res) {
     console.log("Getting project schema");
     try {
-      console.log("Getting " + req.body.projectName + " Schema");
+      let projectName = String(req.body.projectName);
+      console.log("Getting " + projectName + " Schema");
       let schema = {};
-      schema[req.body.projectName] = {};
+      schema[projectName] = {};
 
       // Set ID element in schema
-      schema[req.body.projectName]._id = "_id";
+      schema[projectName]._id = "_id";
 
       // Set project schema
       schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
-      schema[req.body.projectName] = {
-        ...schema[req.body.projectName],
-        ...schemaFile[req.body.projectName]
+      schema[projectName] = {
+        ...schema[projectName],
+        ...schemaFile[projectName]
       };
 
-      res.send(schema[req.body.projectName]);
+      res.send(schema[projectName]);
     } catch (err) {
       console.log(err);
       res.send({
@@ -74,10 +75,13 @@ async function startExpressServer() {
   app.post('/editProjectSchema', async function (req, res) {
     console.log("Editing project schema");
     try {
+      // Output text saying we are editing schema
+      console.log("Editing " + newProjectName + " Schema")
+      
       // Define vars
       let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
-      let oldProjectName = req.body.oldProjectName;
-      let newProjectName = req.body.newProjectName;
+      let oldProjectName = String(req.body.oldProjectName);
+      let newProjectName = String(req.body.newProjectName);
 
       // Rename project if necessary
       if (oldProjectName != newProjectName) {
@@ -89,10 +93,6 @@ async function startExpressServer() {
         });
       }
 
-      // Output text saying we are editing schema
-      console.log("Editing " + newProjectName + " Schema")
-      res.send("Editing Schema");
-
       // Setup vars and define ID element
       let schema = {};
       schema["_id"] = {
@@ -101,9 +101,11 @@ async function startExpressServer() {
 
       // Delete unused id element
       delete schemaFile[newProjectName]["_id"];
+
+      // Declare schema vars
       let oldSchema = schemaFile[newProjectName];
       let oldSchemaKeys = Object.keys(oldSchema);
-      let submittedSchema = req.body.schema;
+      let submittedSchema = JSON.parse(req.body.schema);
       let submittedSchemaKeys = Object.keys(submittedSchema);
 
       // Loop through schema and process based on type
@@ -158,19 +160,19 @@ async function startExpressServer() {
 
       // Rename properties in database if required
       for (let j = 0; j < oldSchemaKeys.length; j++) {
-          if (j < submittedSchemaKeys.length) {
-              if (oldSchemaKeys[j] != submittedSchemaKeys[j]) {
-                  await MongoDatabase.db("IssueTracker").collection(newProjectName).updateMany({}, {
-                      $rename: {
-                          [oldSchemaKeys[j]]: submittedSchemaKeys[j]
-                      }
-                  });
+        if (j < submittedSchemaKeys.length) {
+          if (oldSchemaKeys[j] != submittedSchemaKeys[j]) {
+            await MongoDatabase.db("IssueTracker").collection(newProjectName).updateMany({}, {
+              $rename: {
+                [oldSchemaKeys[j]]: submittedSchemaKeys[j]
               }
+            });
           }
+        }
       }
 
       
-
+      res.send("Schema Edited");
     } catch (err) {
       console.log(err);
       res.send({
@@ -301,10 +303,10 @@ async function startExpressServer() {
                 }, function (err, res) {
                   if (err) throw err;
                 });
-              console.log(project[i][req.body.schemaKeys[j+1]].fileName);
-              console.log(tempFilesUploaded)
+
+
               if (project[i][req.body.schemaKeys[j+1]]!="undefined") {
-                fs.renameSync("./files/"+projectName+"/"+project[i][req.body.schemaKeys[j+1]]+(tempFilesUploaded.toString()), "./files/"+projectName+"/"+fileID);
+                fs.renameSync("./files/"+projectName+"/"+project[i][req.body.schemaKeys[j+1]].fileName+(tempFilesUploaded.toString()), "./files/"+projectName+"/"+fileID);
                 filesUploaded+=1; 
                 tempFilesUploaded+=1;
               }
@@ -389,7 +391,6 @@ async function startExpressServer() {
   // Update project files
   app.post('/updateProjectFiles', async function (req, res) {
     try {
-      
       // Vars
       let files = req.files;
       let fileKeys = Object.keys(files);
@@ -555,7 +556,7 @@ async function editIssue(projectName, issueID, propertyName, propertyData) {
   });
 }
 
-// Edit time project was last edited
+// Set time project was last edited
 async function editEditedTime(projectName, time) {
   console.log("Editing Edited Time from Project " + projectName);
   let dbo = MongoDatabase.db("IssueTracker");
@@ -570,7 +571,7 @@ async function editEditedTime(projectName, time) {
   });
 }
 
-// Delete project from database
+// Delete project
 async function deleteProject(projectName) {
   console.log("Deleting Project: "+projectName);
   let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));

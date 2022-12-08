@@ -100,7 +100,7 @@ function removeProperty() {
 function createProject() {
   console.log("Creating project");
   let schemaData = schemaTable.exportTable(tableSchema);
-  projectName = document.getElementById("titleInput").value;
+  projectName = document.getElementById("projectName").value;
   let updatedSchema = {};
   updatedSchema._id = {"type":"_id"};
   

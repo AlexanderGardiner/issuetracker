@@ -34,8 +34,8 @@ class table {
 
 
     // Create body
-    for (let i = 1; i < tableData.length+1; i++) {
-      this.addRow(tableData[i-1], schema)
+    for (let i = 0; i < tableData.length; i++) {
+      this.addRow(tableData[i], schema)
     }
 
 
@@ -164,7 +164,6 @@ class table {
 
         if (this.tableData[this.schemaKeys[j]]!=undefined) {
           this.cellChildren[i][j].fileID = this.tableData[this.schemaKeys[j]].fileID;
-
           fileToRequest = this.tableData[this.schemaKeys[j]].fileName;
         } else {
           this.cellChildren[i][j].fileID = undefined;
@@ -253,7 +252,7 @@ class table {
     this.cells.splice(parseInt(issue)-1,1);
     this.rows[parseInt(issue)].remove();
     this.rows.splice(parseInt(issue),1)
-    // }
+  
   }
 
   // Export table data
