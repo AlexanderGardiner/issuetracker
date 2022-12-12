@@ -296,7 +296,8 @@ async function startExpressServer() {
           let keys = Object.keys(project[i]);
           for (let j = 0; j < keys.length; j++) {
             if (req.body.schema[req.body.schemaKeys[j + 1]].type == "File") {
-              if (project[i][req.body.schemaKeys[j + 1]].fileName != "") {
+              console.log(project[i][req.body.schemaKeys[j + 1]].fileName!="") 
+              if (project[i][req.body.schemaKeys[j + 1]]!="") {
                 let fileID = filesUploaded + project[i][keys[j]].substring(project[i][keys[j]].lastIndexOf("."), project[i][keys[j]].length);
                 project[i][req.body.schemaKeys[j + 1]] = { "fileName": project[i][req.body.schemaKeys[j + 1]], "fileID": fileID };
                 await MongoDatabase.db("IssueTracker").collection(projectName).updateOne({}
@@ -307,9 +308,9 @@ async function startExpressServer() {
                   }, function(err, res) {
                     if (err) throw err;
                   });
-              
-              
+
                 fs.renameSync("./files/" + projectName + "/" + project[i][req.body.schemaKeys[j + 1]].fileName + (tempFilesUploaded.toString()), "./files/" + projectName + "/" + fileID);
+              
                 filesUploaded += 1;
                 tempFilesUploaded += 1;
               }
