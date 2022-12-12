@@ -85,6 +85,8 @@ function removeIssue(issueIndex) {
       }
     }
     projectTable.removeRow(issueIndex);
+  } else {
+    projectTable.removeRow(issueIndex);
   }
 }
 

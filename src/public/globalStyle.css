@@ -15,6 +15,10 @@
     font-size: 3vw;
 }
 
+#projectName {
+  font-size: 30px;
+}
+
 .projectButton {
     margin: 0 auto;
     margin-top: 10px;

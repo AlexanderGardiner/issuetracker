@@ -117,7 +117,7 @@ function removeProperty() {
     schemaIDsToDelete.push(schemaTable.cellChildren[schemaTable.cellChildren.length - 1][0].value);
   }
   
-  schemaTable.removeRow();
+  schemaTable.removeRow(undefined);
 
 }
 
