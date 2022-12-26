@@ -59,7 +59,7 @@ function displaySchema(schema) {
   }
 
   // Create table
-  schemaTable = new table(tableData, tableSchema)
+  schemaTable = new table(tableData, tableSchema, true)
 }
 
 // Add property to schema
@@ -93,7 +93,7 @@ function addProperty() {
 // Remove last property from table
 function removeProperty() {
   console.log("Reomving property");
-  schemaTable.removeRow();
+  schemaTable.removeRow(undefined);
 }
 
 // Submit project to server to be created

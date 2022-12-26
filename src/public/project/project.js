@@ -21,6 +21,7 @@ fetch("/getProject", {
 
 // Define global vars
 let projectTable;
+let addRowTable;
 let schemaKeys;
 let schema;
 let project;
@@ -38,14 +39,7 @@ function displayProject(data) {
   schemaKeys = Object.keys(schema);
   project.shift();
 
-  // Create table
-  projectTable = new table(project, schema);
-  
-}
-
-// Add issue
-function addIssue() {
-  console.log("Adding issue");
+  addRowTable = new table({}, schema, false);
   let blankData = {};
 
   // Create blank issue based on schema
@@ -65,7 +59,16 @@ function addIssue() {
     }
   }
   
-  projectTable.addRow(blankData, schema)
+  addRowTable.addRow(blankData, schema, null);
+  
+  // Create table
+  projectTable = new table(project, schema, true);
+  
+}
+
+// Add issue
+function addIssue() {
+  projectTable.addRow(addRowTable.exportTable(schema)[0],schema, addRowTable.cellChildren[1][addRowTable.cellChildren[1].length-1].children[1].children[0])
 
 }
 
@@ -84,6 +87,8 @@ function removeIssue(issueIndex) {
   
       }
     }
+    projectTable.removeRow(issueIndex);
+  } else {
     projectTable.removeRow(issueIndex);
   }
 }

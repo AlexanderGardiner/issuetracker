@@ -1,6 +1,6 @@
 class table {
-  constructor(tableData, schema) {
-    
+  constructor(tableData, schema, createHeaders) {
+
     console.log("Creating table");
     // Table data and schema both in format for a project but can be used for other tables
 
@@ -18,24 +18,27 @@ class table {
       this.schemaDataTypes.push(schema[this.schemaKeys[i]].type);
     }
 
-    // Create headers
-    this.rows.push(this.tableHeader.insertRow(-1));
-    this.cells.push([]);
-    this.cellChildren.push([]);
-    for (let i = 0; i < this.schemaKeys.length; i++) {
-      this.cells[0].push(this.rows[0].insertCell(-1));
-      this.cellChildren[0].push(document.createElement("h1"));
-      this.cells[0][i].appendChild(this.cellChildren[0][i]);
-      this.cellChildren[0][i].innerHTML = this.schemaKeys[i];
-      this.cellChildren[0][i].classList.add("tableCellChild", "tableHeaderCellChild");
-      this.cells[0][i].style.width = "1000px";
-      this.cells[0][i].classList.add("tableHeaderCell");
+    if (createHeaders) {
+      // Create headers
+      this.rows.push(this.tableHeader.insertRow(-1));
+      this.cells.push([]);
+      this.cellChildren.push([]);
+      for (let i = 0; i < this.schemaKeys.length; i++) {
+        this.cells[0].push(this.rows[0].insertCell(-1));
+        this.cellChildren[0].push(document.createElement("h1"));
+        this.cells[0][i].appendChild(this.cellChildren[0][i]);
+        this.cellChildren[0][i].innerHTML = this.schemaKeys[i];
+        this.cellChildren[0][i].classList.add("tableCellChild", "tableHeaderCellChild");
+        this.cells[0][i].style.width = "1000px";
+        this.cells[0][i].classList.add("tableHeaderCell");
+      }
     }
+    
 
 
     // Create body
     for (let i = 0; i < tableData.length; i++) {
-      this.addRow(tableData[i], schema)
+      this.addRow(tableData[i], schema, null)
     }
 
 
@@ -43,7 +46,7 @@ class table {
 
   }
   // Add row
-  addRow(tableData, schema) {
+  addRow(tableData, schema, file) {
     console.log("Adding row")
     // Prepare vars and create rows
     this.tableData = tableData;
@@ -74,13 +77,15 @@ class table {
         this.cells[i][j].children[1].innerHTML = "Delete";
         this.cells[i][j].children[1].setAttribute("issueIndex", i);
         let issueIndex = i;
-        this.cells[i][j].children[1].onclick = function(issue) {removeIssue(this.parentElement.parentElement.rowIndex)};
+        this.cells[i][j].children[1].onclick = function(issue) { removeIssue(this.parentElement.parentElement.rowIndex) };
 
       } else if (this.schemaDataTypes[j] == "Text") {
         // Create text cell
         this.cellChildren[i].push(document.createElement("textarea"));
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
-        this.cellChildren[i][j].innerHTML = this.tableData[this.schemaKeys[j]];
+        if (this.tableData[this.schemaKeys[j]]!=undefined) {
+          this.cellChildren[i][j].innerHTML = this.tableData[this.schemaKeys[j]];
+        }
         this.cellChildren[i][j].classList.add("textAreaCell");
 
       } else if (this.schemaDataTypes[j] == "ReadOnlyText") {
@@ -89,7 +94,10 @@ class table {
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
         this.cellChildren[i][j].setAttribute("readonly", "true");
         this.cellChildren[i][j].classList.add("textAreaCell");
-        this.cellChildren[i][j].innerHTML = this.tableData[this.schemaKeys[j]].toString();
+        if (this.tableData[this.schemaKeys[j]]!=undefined) {
+          this.cellChildren[i][j].innerHTML = this.tableData[this.schemaKeys[j]].toString();
+        }
+        
 
       } else if (this.schemaDataTypes[j] == "Time") {
         // Create time cell
@@ -141,7 +149,9 @@ class table {
         // Create user cell
         this.cellChildren[i].push(document.createElement("textarea"));
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
-        this.cellChildren[i][j].innerHTML = this.tableData[this.schemaKeys[j]];
+        if (this.tableData[this.schemaKeys[j]]!=undefined) {
+          this.cellChildren[i][j].innerHTML = this.tableData[this.schemaKeys[j]];
+        }
         this.cellChildren[i][j].classList.add("textAreaCell");
 
       } else if (this.schemaDataTypes[j] == "File") {
@@ -157,19 +167,20 @@ class table {
         this.cellChildren[i][j].children[1].appendChild(document.createElement("br"));
         this.cellChildren[i][j].children[1].appendChild(document.createElement("button"));
 
-
+        
+        
         let fileToRequest;
         let issueID;
         let propertyName;
 
-        if (this.tableData[this.schemaKeys[j]]!=undefined) {
+        if (this.tableData[this.schemaKeys[j]] != undefined) {
           this.cellChildren[i][j].fileID = this.tableData[this.schemaKeys[j]].fileID;
           fileToRequest = this.tableData[this.schemaKeys[j]].fileName;
         } else {
           this.cellChildren[i][j].fileID = undefined;
-          
+
         }
-        
+
 
         // Get file
         if (fileToRequest) {
@@ -215,8 +226,12 @@ class table {
 
         // Set download link
         this.cellChildren[i][j].children[1].children[0].type = "file";
+        if (file!=null) {
+          this.cellChildren[i][j].children[1].children[0].files = file.files;
+          
+        }
         this.cellChildren[i][j].children[1].children[2].onclick = function() { if (fileToRequest) { requestFile(fileToRequest, issueID, propertyName) } };
-        if (this.tableData[this.schemaKeys[j]]!=undefined) {
+        if (this.tableData[this.schemaKeys[j]] != undefined) {
           this.cellChildren[i][j].children[1].children[2].innerHTML = "Download " + this.tableData[this.schemaKeys[j]].fileName;
           this.cellChildren[i][j].children[1].children[2].value = "Download " + this.tableData[this.schemaKeys[j]].fileName;
         } else {
@@ -227,14 +242,11 @@ class table {
 
 
         let fileID = this.cellChildren[i][j].fileID;
-        if (this.tableData[this.schemaKeys[j]]!=undefined) {
-          if (this.cellChildren[i][0].innerHTML!="Not In Database" && (this.tableData[this.schemaKeys[j]].fileName!="undefined"&&this.tableData[this.schemaKeys[j]].fileName!=undefined)) {
+        if (this.tableData[this.schemaKeys[j]] != undefined) {
+          if (this.cellChildren[i][0].innerHTML != "Not In Database" && (this.tableData[this.schemaKeys[j]].fileName != "undefined" && this.tableData[this.schemaKeys[j]].fileName != undefined)) {
             this.cellChildren[i][j].children[1].children[0].onchange = function() { prepareDeletionOfOldFile(fileID) };
           }
         }
-        
-        
-
 
       }
       this.cellChildren[i][j].classList.add("tableCellChild");
@@ -242,17 +254,20 @@ class table {
 
     }
 
-    
+
   }
 
   // Remove row 
   removeRow(issue) {
+    if (issue==undefined) {
+      issue = this.rows.length-1;
+    }
     console.log("Removing row");
-    this.cellChildren.splice(parseInt(issue)-1,1);
-    this.cells.splice(parseInt(issue)-1,1);
+    this.cellChildren.splice(parseInt(issue), 1);
+    this.cells.splice(parseInt(issue), 1);
     this.rows[parseInt(issue)].remove();
-    this.rows.splice(parseInt(issue),1)
-  
+    this.rows.splice(parseInt(issue), 1)
+
   }
 
   // Export table data
@@ -275,7 +290,7 @@ class table {
             this.fileIDs.push(this.cellChildren[i][j].fileID);
 
           } else {
-            this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].children[1].children[2].innerHTML.substring(9);
+            this.project[i - 1][this.schemaKeys[j]] = "";
           }
 
         } else {
