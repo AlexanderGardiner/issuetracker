@@ -59,7 +59,7 @@ function displaySchema(schema) {
   }
 
   // Create table
-  schemaTable = new table(tableData, tableSchema)
+  schemaTable = new table(tableData, tableSchema, true)
 }
 
 // Add property to schema

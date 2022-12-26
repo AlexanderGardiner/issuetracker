@@ -140,7 +140,7 @@ async function startExpressServer() {
           if (schemaFile[newProjectName][req.body.schemaIDsToDelete[j]].type == "File") {
             let filesToDelete = await MongoDatabase.db("IssueTracker").collection(newProjectName).find({}, { "projection": { [req.body.schemaIDsToDelete[j]]: 1, "_id": 0 } }).toArray();
             for (let k = 1; k < filesToDelete.length; k++) {
-              if (filesToDelete[k][req.body.schemaIDsToDelete[j]] != undefined) {
+              if (filesToDelete[k][req.body.schemaIDsToDelete[j]].fileID != undefined) {
                 fs.unlinkSync("./files/" + newProjectName + "/" + filesToDelete[k][req.body.schemaIDsToDelete[j]].fileID);
               }
 

@@ -1,5 +1,5 @@
 class table {
-  constructor(tableData, schema) {
+  constructor(tableData, schema, createHeaders) {
 
     console.log("Creating table");
     // Table data and schema both in format for a project but can be used for other tables
@@ -18,24 +18,27 @@ class table {
       this.schemaDataTypes.push(schema[this.schemaKeys[i]].type);
     }
 
-    // Create headers
-    this.rows.push(this.tableHeader.insertRow(-1));
-    this.cells.push([]);
-    this.cellChildren.push([]);
-    for (let i = 0; i < this.schemaKeys.length; i++) {
-      this.cells[0].push(this.rows[0].insertCell(-1));
-      this.cellChildren[0].push(document.createElement("h1"));
-      this.cells[0][i].appendChild(this.cellChildren[0][i]);
-      this.cellChildren[0][i].innerHTML = this.schemaKeys[i];
-      this.cellChildren[0][i].classList.add("tableCellChild", "tableHeaderCellChild");
-      this.cells[0][i].style.width = "1000px";
-      this.cells[0][i].classList.add("tableHeaderCell");
+    if (createHeaders) {
+      // Create headers
+      this.rows.push(this.tableHeader.insertRow(-1));
+      this.cells.push([]);
+      this.cellChildren.push([]);
+      for (let i = 0; i < this.schemaKeys.length; i++) {
+        this.cells[0].push(this.rows[0].insertCell(-1));
+        this.cellChildren[0].push(document.createElement("h1"));
+        this.cells[0][i].appendChild(this.cellChildren[0][i]);
+        this.cellChildren[0][i].innerHTML = this.schemaKeys[i];
+        this.cellChildren[0][i].classList.add("tableCellChild", "tableHeaderCellChild");
+        this.cells[0][i].style.width = "1000px";
+        this.cells[0][i].classList.add("tableHeaderCell");
+      }
     }
+    
 
 
     // Create body
     for (let i = 0; i < tableData.length; i++) {
-      this.addRow(tableData[i], schema)
+      this.addRow(tableData[i], schema, null)
     }
 
 
@@ -43,7 +46,7 @@ class table {
 
   }
   // Add row
-  addRow(tableData, schema) {
+  addRow(tableData, schema, file) {
     console.log("Adding row")
     // Prepare vars and create rows
     this.tableData = tableData;
@@ -164,7 +167,8 @@ class table {
         this.cellChildren[i][j].children[1].appendChild(document.createElement("br"));
         this.cellChildren[i][j].children[1].appendChild(document.createElement("button"));
 
-
+        
+        
         let fileToRequest;
         let issueID;
         let propertyName;
@@ -222,6 +226,10 @@ class table {
 
         // Set download link
         this.cellChildren[i][j].children[1].children[0].type = "file";
+        if (file!=null) {
+          this.cellChildren[i][j].children[1].children[0].files = file.files;
+          
+        }
         this.cellChildren[i][j].children[1].children[2].onclick = function() { if (fileToRequest) { requestFile(fileToRequest, issueID, propertyName) } };
         if (this.tableData[this.schemaKeys[j]] != undefined) {
           this.cellChildren[i][j].children[1].children[2].innerHTML = "Download " + this.tableData[this.schemaKeys[j]].fileName;
@@ -239,9 +247,6 @@ class table {
             this.cellChildren[i][j].children[1].children[0].onchange = function() { prepareDeletionOfOldFile(fileID) };
           }
         }
-
-
-
 
       }
       this.cellChildren[i][j].classList.add("tableCellChild");
