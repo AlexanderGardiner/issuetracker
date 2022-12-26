@@ -17,7 +17,7 @@ const fileupload = require("express-fileupload");
 process.chdir("src");;
 
 // Vars for mongodb database
-var url = "mongodb+srv://Main:dMcf3VJHSFCHx9lZ@issuetracker.9w0hzlx.mongodb.net/?retryWrites=true&w=majority";
+var url = "mongodb+srv://Main:yF5HIDis6Dmwq2fn@issuetracker.9w0hzlx.mongodb.net/?retryWrites=true&w=majority";
 //var url = "mongodb://localhost:27017";
 var MongoDatabase;
 
