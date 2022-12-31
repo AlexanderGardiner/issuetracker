@@ -51,7 +51,7 @@ tbody {
   -moz-box-sizing: border-box;
   margin: 5px;
   height: 2em;
-  border: 1px solid #606060;
+  border: 1px solid #c3c3c3;
 }
 
 h1.tableHeaderCellChild {
@@ -75,3 +75,6 @@ h1.tableHeaderCellChild {
   width: 1000px;
 }
 
+input:invalid {
+  border: red solid 3px;
+}

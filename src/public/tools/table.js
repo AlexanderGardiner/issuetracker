@@ -60,6 +60,9 @@ class table {
         this.cellChildren[0][i].appendChild(document.createElement("input"));
         this.cellChildren[0][i].children[1].type = "Text";
         this.cellChildren[0][i].children[1].classList.add("tableHeaderCellChild");
+
+        this.cellChildren[0][i].appendChild(document.createElement("input"));
+        this.cellChildren[0][i].children[2].type = "Checkbox";
         
       } else if (this.schemaDataTypes[i] == "Text" || this.schemaDataTypes[i] == "ReadOnlyText") {
         this.cellChildren[0][i].appendChild(document.createElement("h1"));
@@ -69,10 +72,13 @@ class table {
         this.cellChildren[0][i].appendChild(document.createElement("input"));
         this.cellChildren[0][i].children[1].type = "Text";
         this.cellChildren[0][i].children[1].classList.add("tableHeaderCellChild");
+
+        this.cellChildren[0][i].appendChild(document.createElement("input"));
+        this.cellChildren[0][i].children[2].type = "Checkbox";
         
       } else if (this.schemaDataTypes[i] == "Time") {
         this.cellChildren[0][i].appendChild(document.createElement("input"));
-        this.cellChildren[0][i].children[0].type = "Text";
+        this.cellChildren[0][i].children[0].type = "datetime-local";
         this.cellChildren[0][i].children[0].classList.add("tableHeaderCellChild");
 
         this.cellChildren[0][i].appendChild(document.createElement("h1"));
@@ -80,7 +86,7 @@ class table {
         this.cellChildren[0][i].children[1].innerHTML = "≤ " + this.schemaKeys[i] + " ≤";
 
         this.cellChildren[0][i].appendChild(document.createElement("input"));
-        this.cellChildren[0][i].children[2].type = "Text";
+        this.cellChildren[0][i].children[2].type = "datetime-local";
         this.cellChildren[0][i].children[2].classList.add("tableHeaderCellChild");
         
       } else if (this.schemaDataTypes[i] == "Multiple Choice" || this.schemaDataTypes[i] == "Multiple Choice ReadOnly") {
@@ -89,10 +95,13 @@ class table {
         this.cellChildren[0][i].children[0].innerHTML = this.schemaKeys[i] + " =";
 
         this.cellChildren[0][i].appendChild(document.createElement("Select"));
+        let option = document.createElement("option");
+        option.value = "";
+        option.text = "";
+        this.cellChildren[0][i].children[1].appendChild(option);
         for (let j=0; j<this.schema[this.schemaKeys[i]].options.length; j++) {
           let option = document.createElement("option");
           option.value = this.schema[this.schemaKeys[i]].options[j];
-          console.log(this.schema[this.schemaKeys[i]].options)
           option.text = this.schema[this.schemaKeys[i]].options[j];
           this.cellChildren[0][i].children[1].appendChild(option);
         }
@@ -107,6 +116,9 @@ class table {
         this.cellChildren[0][i].appendChild(document.createElement("input"));
         this.cellChildren[0][i].children[1].type = "Text";
         this.cellChildren[0][i].children[1].classList.add("tableHeaderCellChild");
+
+        this.cellChildren[0][i].appendChild(document.createElement("input"));
+        this.cellChildren[0][i].children[2].type = "Checkbox";
         
       } else if (this.schemaDataTypes[i] == "File") {  
         this.cellChildren[0][i].appendChild(document.createElement("h1"));
@@ -116,6 +128,9 @@ class table {
         this.cellChildren[0][i].appendChild(document.createElement("input"));
         this.cellChildren[0][i].children[1].type = "Text";
         this.cellChildren[0][i].children[1].classList.add("tableHeaderCellChild");
+
+        this.cellChildren[0][i].appendChild(document.createElement("input"));
+        this.cellChildren[0][i].children[2].type = "Checkbox";
         
       }
     }
