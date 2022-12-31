@@ -128,6 +128,7 @@ function updateSchema() {
   let deleteOldProperties = confirm("Delete old properties (yes/no)?")
   let schemaData = schemaTable.exportTable(tableSchema);
   let updatedSchema = {};
+  let schemaNames = [];
 
   // Format multiple choice schema
   for (let i = 0; i < schemaData.length; i++) {
@@ -144,6 +145,14 @@ function updateSchema() {
     }
 
   }
+
+   for (let i = 0; i < schemaData.length; i++) {
+     if (schemaNames.includes(schemaData[i]["Name of Property"])) {
+       alert("Duplicate property");
+       return
+     }
+     schemaNames.push(schemaData[i]["Name of Property"]);
+   }
   
   // Send new project to server
   fetch("/editProjectSchema", {

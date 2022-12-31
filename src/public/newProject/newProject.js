@@ -96,45 +96,64 @@ function removeProperty() {
   schemaTable.removeRow(undefined);
 }
 
+function checkProjectNamesAndUploadProject() {
+  // Get project names
+  fetch("/getProjectNames", {
+          method: 'GET',
+          headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'access-control-allow-origin': '*'
+          }
+      })
+      .then(response => response.json())
+      .then(data => createProject(data));
+}
+
 // Submit project to server to be created
-function createProject() {
+function createProject(projectNames) {
   console.log("Creating project");
   let schemaData = schemaTable.exportTable(tableSchema);
   projectName = document.getElementById("projectName").value;
-  let updatedSchema = {};
-  updatedSchema._id = {"type":"_id"};
+  if (!(projectNames.includes(projectName))) {
+    let updatedSchema = {};
+    updatedSchema._id = {"type":"_id"};
+    
+    // Format multiple choice schema
+    for (let i = 0; i < schemaData.length; i++) {
+      if (schemaData[i]["Type of Property"] == "Multiple Choice") {
+        updatedSchema[schemaData[i]["Name of Property"]] = {
+          "type": schemaData[i]["Type of Property"],
+          "options": schemaData[i]["Choices"].split(',')
+        };
+        
+      } else {
+        updatedSchema[schemaData[i]["Name of Property"]] = {
+          "type": schemaData[i]["Type of Property"]
+        };
+      }
   
-  // Format multiple choice schema
-  for (let i = 0; i < schemaData.length; i++) {
-    if (schemaData[i]["Type of Property"] == "Multiple Choice") {
-      updatedSchema[schemaData[i]["Name of Property"]] = {
-        "type": schemaData[i]["Type of Property"],
-        "options": schemaData[i]["Choices"].split(',')
-      };
-      
-    } else {
-      updatedSchema[schemaData[i]["Name of Property"]] = {
-        "type": schemaData[i]["Type of Property"]
-      };
     }
-
-  }
-
-  // Send new project to server
-  fetch("/createNewProject", {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      'access-control-allow-origin': '*'
-    },
-    body: JSON.stringify({
-      "projectName": projectName,
-      "schema": updatedSchema
+  
+    // Send new project to server
+    fetch("/createNewProject", {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'access-control-allow-origin': '*'
+      },
+      body: JSON.stringify({
+        "projectName": projectName,
+        "schema": updatedSchema
+      })
     })
-  })
-  .then(response => response.text())
-  .then(data => redirectToProject(data));
+    .then(response => response.text())
+    .then(data => redirectToProject(data));
+  } else {
+    alert("Project already exists")
+  }
+  
 
 }
 

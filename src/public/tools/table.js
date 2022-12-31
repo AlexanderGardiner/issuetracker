@@ -12,6 +12,7 @@ class table {
     this.cellChildren = [];
     this.schemaKeys = Object.keys(schema);
     this.schemaDataTypes = [];
+    this.schema = schema;
     this.tableHeader = this.table.createTHead();
     this.tableBody = this.table.createTBody();
     for (let i = 0; i < this.schemaKeys.length; i++) {
@@ -19,20 +20,8 @@ class table {
     }
 
     if (createHeaders) {
-      // Create headers
-      this.rows.push(this.tableHeader.insertRow(-1));
-      this.cells.push([]);
-      this.cellChildren.push([]);
-      for (let i = 0; i < this.schemaKeys.length; i++) {
-        this.cells[0].push(this.rows[0].insertCell(-1));
-        this.cellChildren[0].push(document.createElement("h1"));
-        this.cells[0][i].appendChild(this.cellChildren[0][i]);
-        this.cellChildren[0][i].innerHTML = this.schemaKeys[i];
-        this.cellChildren[0][i].classList.add("tableCellChild", "tableHeaderCellChild");
-        this.cells[0][i].style.width = "1000px";
-        this.cells[0][i].classList.add("tableHeaderCell");
-      }
-    }
+      this.createHeaders();
+;    }
     
 
 
@@ -45,6 +34,93 @@ class table {
 
 
   }
+
+  createHeaders() {
+    // Create headers
+    this.rows.push(this.tableHeader.insertRow(-1));
+    this.cells.push([]);
+    this.cellChildren.push([]);
+    for (let i = 0; i < this.schemaKeys.length; i++) {
+      this.cells[0].push(this.rows[0].insertCell(-1));
+      this.cellChildren[0].push(document.createElement("div"));
+      
+      this.cells[0][i].appendChild(this.cellChildren[0][i]);
+
+      
+      this.cells[0][i].style.width = "1000px";
+      this.cells[0][i].classList.add("tableHeaderCell");
+
+
+
+      if (this.schemaDataTypes[i] == "_id") {
+        this.cellChildren[0][i].appendChild(document.createElement("h1"));
+        this.cellChildren[0][i].children[0].classList.add("tableHeaderCellChild")
+        this.cellChildren[0][i].children[0].innerHTML = this.schemaKeys[i] + " =";
+
+        this.cellChildren[0][i].appendChild(document.createElement("input"));
+        this.cellChildren[0][i].children[1].type = "Text";
+        this.cellChildren[0][i].children[1].classList.add("tableHeaderCellChild");
+        
+      } else if (this.schemaDataTypes[i] == "Text" || this.schemaDataTypes[i] == "ReadOnlyText") {
+        this.cellChildren[0][i].appendChild(document.createElement("h1"));
+        this.cellChildren[0][i].children[0].classList.add("tableHeaderCellChild")
+        this.cellChildren[0][i].children[0].innerHTML = this.schemaKeys[i] + " =";
+
+        this.cellChildren[0][i].appendChild(document.createElement("input"));
+        this.cellChildren[0][i].children[1].type = "Text";
+        this.cellChildren[0][i].children[1].classList.add("tableHeaderCellChild");
+        
+      } else if (this.schemaDataTypes[i] == "Time") {
+        this.cellChildren[0][i].appendChild(document.createElement("input"));
+        this.cellChildren[0][i].children[0].type = "Text";
+        this.cellChildren[0][i].children[0].classList.add("tableHeaderCellChild");
+
+        this.cellChildren[0][i].appendChild(document.createElement("h1"));
+        this.cellChildren[0][i].children[1].classList.add("tableHeaderCellChild")
+        this.cellChildren[0][i].children[1].innerHTML = "≤ " + this.schemaKeys[i] + " ≤";
+
+        this.cellChildren[0][i].appendChild(document.createElement("input"));
+        this.cellChildren[0][i].children[2].type = "Text";
+        this.cellChildren[0][i].children[2].classList.add("tableHeaderCellChild");
+        
+      } else if (this.schemaDataTypes[i] == "Multiple Choice" || this.schemaDataTypes[i] == "Multiple Choice ReadOnly") {
+        this.cellChildren[0][i].appendChild(document.createElement("h1"));
+        this.cellChildren[0][i].children[0].classList.add("tableHeaderCellChild")
+        this.cellChildren[0][i].children[0].innerHTML = this.schemaKeys[i] + " =";
+
+        this.cellChildren[0][i].appendChild(document.createElement("Select"));
+        for (let j=0; j<this.schema[this.schemaKeys[i]].options.length; j++) {
+          let option = document.createElement("option");
+          option.value = this.schema[this.schemaKeys[i]].options[j];
+          console.log(this.schema[this.schemaKeys[i]].options)
+          option.text = this.schema[this.schemaKeys[i]].options[j];
+          this.cellChildren[0][i].children[1].appendChild(option);
+        }
+        
+        this.cellChildren[0][i].children[1].classList.add("tableHeaderCellChild");
+        
+      } else if (this.schemaDataTypes[i] == "User") {
+        this.cellChildren[0][i].appendChild(document.createElement("h1"));
+        this.cellChildren[0][i].children[0].classList.add("tableHeaderCellChild")
+        this.cellChildren[0][i].children[0].innerHTML = this.schemaKeys[i] + " =";
+
+        this.cellChildren[0][i].appendChild(document.createElement("input"));
+        this.cellChildren[0][i].children[1].type = "Text";
+        this.cellChildren[0][i].children[1].classList.add("tableHeaderCellChild");
+        
+      } else if (this.schemaDataTypes[i] == "File") {  
+        this.cellChildren[0][i].appendChild(document.createElement("h1"));
+        this.cellChildren[0][i].children[0].classList.add("tableHeaderCellChild")
+        this.cellChildren[0][i].children[0].innerHTML = this.schemaKeys[i] + " =";
+
+        this.cellChildren[0][i].appendChild(document.createElement("input"));
+        this.cellChildren[0][i].children[1].type = "Text";
+        this.cellChildren[0][i].children[1].classList.add("tableHeaderCellChild");
+        
+      }
+    }
+  }
+  
   // Add row
   addRow(tableData, schema, file) {
     console.log("Adding row")
