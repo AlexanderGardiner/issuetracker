@@ -1,5 +1,5 @@
 class table {
-  constructor(tableData, schema, createHeaders) {
+  constructor(tableData, schema, headersEnabled) {
 
     console.log("Creating table");
     // Table data and schema both in format for a project but can be used for other tables
@@ -15,11 +15,12 @@ class table {
     this.schema = schema;
     this.tableHeader = this.table.createTHead();
     this.tableBody = this.table.createTBody();
+    this.headersEnabled = headersEnabled;
     for (let i = 0; i < this.schemaKeys.length; i++) {
       this.schemaDataTypes.push(schema[this.schemaKeys[i]].type);
     }
 
-    if (createHeaders) {
+    if (this.headersEnabled) {
       this.createHeaders();
 ;    }
     
@@ -27,7 +28,7 @@ class table {
 
     // Create body
     for (let i = 0; i < tableData.length; i++) {
-      this.addRow(tableData[i], schema, null)
+      this.addRow(tableData[i], schema, {})
     }
 
 
@@ -137,7 +138,7 @@ class table {
   }
   
   // Add row
-  addRow(tableData, schema, file) {
+  addRow(tableData, schema, files) {
     console.log("Adding row")
     // Prepare vars and create rows
     this.tableData = tableData;
@@ -317,10 +318,8 @@ class table {
 
         // Set download link
         this.cellChildren[i][j].children[1].children[0].type = "file";
-        if (file!=null) {
-          this.cellChildren[i][j].children[1].children[0].files = file.files;
-          
-        }
+
+        
         this.cellChildren[i][j].children[1].children[2].onclick = function() { if (fileToRequest) { requestFile(fileToRequest, issueID, propertyName) } };
         if (this.tableData[this.schemaKeys[j]] != undefined) {
           this.cellChildren[i][j].children[1].children[2].innerHTML = "Download " + this.tableData[this.schemaKeys[j]].fileName;
@@ -343,6 +342,10 @@ class table {
       this.cellChildren[i][j].classList.add("tableCellChild");
       this.cells[i][j].classList.add("tableCell");
 
+    }
+    let filesKeys = Object.keys(files);
+    for (let k = 0; k<filesKeys.length; k++) {
+      this.cellChildren[i][filesKeys[k]].children[1].children[0].files = files[filesKeys[k]].files;
     }
 
 
@@ -369,24 +372,50 @@ class table {
     this.files = [];
     this.fileNames = [];
     this.fileIDs = [];
-    for (let i = 1; i < this.cellChildren.length; i++) {
-      this.project.push({});
-      for (let j = 0; j < this.cellChildren[i].length; j++) {
-        if (this.schemaDataTypes[j] == "File") {
-          // Special formatting for file
-          if (this.cellChildren[i][j].children[1].children[0].files[0] !== undefined) {
-            this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].children[1].children[0].files[0].name;
-            this.files.push(this.cellChildren[i][j].children[1].children[0].files[0]);
-            this.fileNames.push(this.cellChildren[i][j].children[1].children[0].files[0].name);
-            this.fileIDs.push(this.cellChildren[i][j].fileID);
 
+    
+    if (this.headersEnabled) {
+      for (let i = 1; i < this.cellChildren.length; i++) {
+        this.project.push({});
+        for (let j = 0; j < this.cellChildren[i].length; j++) {
+          if (this.schemaDataTypes[j] == "File") {
+            // Special formatting for file
+            if (this.cellChildren[i][j].children[1].children[0].files[0] !== undefined) {
+              this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].children[1].children[0].files[0].name;
+              this.files.push(this.cellChildren[i][j].children[1].children[0].files[0]);
+              this.fileNames.push(this.cellChildren[i][j].children[1].children[0].files[0].name);
+              this.fileIDs.push(this.cellChildren[i][j].fileID);
+  
+            } else {
+              this.project[i - 1][this.schemaKeys[j]] = "";
+            }
+  
           } else {
-            this.project[i - 1][this.schemaKeys[j]] = "";
+            // Everything else
+            this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].value;
           }
-
-        } else {
-          // Everything else
-          this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].value;
+        }
+      }
+    } else {
+      for (let i = 0; i < this.cellChildren.length; i++) {
+        this.project.push({});
+        for (let j = 0; j < this.cellChildren[i].length; j++) {
+          if (this.schemaDataTypes[j] == "File") {
+            // Special formatting for file
+            if (this.cellChildren[i][j].children[1].children[0].files[0] !== undefined) {
+              this.project[i][this.schemaKeys[j]] = this.cellChildren[i][j].children[1].children[0].files[0].name;
+              this.files.push(this.cellChildren[i][j].children[1].children[0].files[0]);
+              this.fileNames.push(this.cellChildren[i][j].children[1].children[0].files[0].name);
+              this.fileIDs.push(this.cellChildren[i][j].fileID);
+  
+            } else {
+              this.project[i][this.schemaKeys[j]] = "";
+            }
+  
+          } else {
+            // Everything else
+            this.project[i][this.schemaKeys[j]] = this.cellChildren[i][j].value;
+          }
         }
       }
     }

@@ -59,7 +59,7 @@ function displayProject(data) {
     }
   }
   
-  addRowTable.addRow(blankData, schema, null);
+  addRowTable.addRow(blankData, schema, {});
   
   // Create table
   projectTable = new table(project, schema, true);
@@ -68,7 +68,16 @@ function displayProject(data) {
 
 // Add issue
 function addIssue() {
-  projectTable.addRow(addRowTable.exportTable(schema)[0],schema, addRowTable.cellChildren[1][addRowTable.cellChildren[1].length-1].children[1].children[0])
+  let files = {};
+  for (let i=0; i< schemaKeys.length; i++) {
+    if (schema[schemaKeys[i]].type == "File") {
+      files[i] = addRowTable.cellChildren[0][i].children[1].children[0];
+    }
+    
+  }
+  console.log(addRowTable.exportTable(schema))
+  projectTable.addRow(addRowTable.exportTable(schema)[0],schema, files)
+  
 
 }
 

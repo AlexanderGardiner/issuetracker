@@ -224,7 +224,7 @@ async function startExpressServer() {
       console.log("Getting Project: " + req.body.projectName);
       let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
       let schema = schemaFile[req.body.projectName];
-      let project = await getProject(req.body.projectName);
+      let project = await getProject(req.body.projectName, {});
       res.send(JSON.stringify({
         "project": project,
         "schema": schema,
@@ -489,9 +489,9 @@ async function getProjectNames() {
 }
 
 // Get project from database
-async function getProject(projectName) {
+async function getProject(projectName, filters) {
   console.log("Getting Project: " + projectName);
-  let project = await MongoDatabase.db("IssueTracker").collection(projectName).find().toArray();
+  let project = await MongoDatabase.db("IssueTracker").collection(projectName).find(filters).toArray();
   return project
 }
 
