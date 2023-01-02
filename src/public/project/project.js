@@ -32,6 +32,7 @@ let downloadedFileName;
 // Display project in editable table
 function displayProject(data) {
   console.log("Displaying project: " + projectName);
+  console.log(data)
   document.getElementById("timeEdited").innerHTML = "Time Edited: " + new Date(data.project[0].projectTimeEdited);
   document.getElementById("title").innerHTML = projectName;
   project = data.project;
@@ -103,32 +104,56 @@ function removeIssue(issueIndex) {
 }
 
 // Update project to server
-function updateProjectData(project) {
+function updateProjectData(project, filterTriggered) {
   console.log("Updating project");
-  // Post request
-  fetch("/updateProject", {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      'access-control-allow-origin': '*'
-    },
-    body: JSON.stringify({
-      "projectName": projectName,
-      "project": project,
-      "issueIDsToDelete": issueIDsToDelete,
-      "projectFileIDsToDelete": projectFileIDsToDelete,
-      "schema": schema,
-      "schemaKeys": schemaKeys,
+  if (!filterTriggered) {
+    // Post request
+    fetch("/updateProject", {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'access-control-allow-origin': '*'
+      },
+      body: JSON.stringify({
+        "projectName": projectName,
+        "project": project,
+        "issueIDsToDelete": issueIDsToDelete,
+        "projectFileIDsToDelete": projectFileIDsToDelete,
+        "schema": schema,
+        "schemaKeys": schemaKeys,
+      })
     })
-  })
-  .then((response) => response.text())
-  .then((data) => reloadPage(""));
+    .then((response) => response.text())
+    .then((data) => reloadProject());
+  } else {
+    console.log("Test")
+    // Post request
+    fetch("/updateProject", {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'access-control-allow-origin': '*'
+      },
+      body: JSON.stringify({
+        "projectName": projectName,
+        "project": project,
+        "issueIDsToDelete": issueIDsToDelete,
+        "projectFileIDsToDelete": projectFileIDsToDelete,
+        "schema": schema,
+        "schemaKeys": schemaKeys,
+      })
+    })
+    .then((response) => response.text())
+    .then((data) => filterProject());
+  }
+  
 
 }
 
 // Update project files
-function updateProject() {
+function updateProject(filterTriggered) {
   // Setup files as formdata
   let project = projectTable.exportTable(schema);
   let files = projectTable.files;
@@ -138,6 +163,9 @@ function updateProject() {
     fd.append((fileNames[i]+i.toString()), files[i],(fileNames[i]+i.toString()));
   }
 
+  if (filterTriggered==undefined) {
+    filterTriggered = false;
+  }
   console.log("Updating project files");
   if (files.length>0) {
     fetch("/updateProjectFiles?"+ new URLSearchParams({
@@ -147,10 +175,10 @@ function updateProject() {
       body: fd
     })
     .then((response) => response.text())
-    .then((data) => updateProjectData(project));
+    .then((data) => updateProjectData(project,filterTriggered));
     
   } else {
-    updateProjectData(project);
+    updateProjectData(project,filterTriggered);
     
   }
 }
@@ -209,6 +237,61 @@ function downloadFile(blob) {
   // Delete link
   link.parentNode.removeChild(link);
   window.URL.revokeObjectURL(blobUrl);
+}
+
+function filterProjectUpdate() {
+  let updateProjectConfirm = confirm("Update Project?");
+  if (updateProjectConfirm) {
+    updateProject(true);
+  } else {
+    filterProject();
+  }
+}
+
+function filterProject() {
+  
+  let filters = projectTable.getFilters();
+  
+  addRowTable.table.remove();
+  projectTable.table.remove();
+  
+  
+  // Get project from server and send to be displayed
+  fetch("/getProject", {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'access-control-allow-origin': '*'
+    },
+    body: JSON.stringify({
+      "projectName": projectName,
+      "filters": filters
+    })
+  })
+  .then(response => response.json())
+  .then(data => displayProject(data));
+  
+}
+
+function reloadProject() {
+  addRowTable.table.remove();
+  projectTable.table.remove();
+  
+  // Get project from server and send to be displayed
+  fetch("/getProject", {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'access-control-allow-origin': '*'
+    },
+    body: JSON.stringify({
+      "projectName": projectName
+    })
+  })
+  .then(response => response.json())
+  .then(data => displayProject(data));
 }
 
 // Reload page

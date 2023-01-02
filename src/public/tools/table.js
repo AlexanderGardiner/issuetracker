@@ -136,7 +136,19 @@ class table {
       }
     }
   }
-  
+
+  datetimeLocal(datetime) {
+    const dt = new Date(datetime);
+    dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
+    return dt.toISOString().slice(0, 16);
+  }
+
+  datetimeUTC(datetime) {
+    const dt = new Date(datetime);
+    dt.setMinutes(dt.getMinutes() + dt.getTimezoneOffset());
+    return dt.toISOString().slice(0, 16);
+  }
+
   // Add row
   addRow(tableData, schema, files) {
     console.log("Adding row")
@@ -193,9 +205,10 @@ class table {
 
       } else if (this.schemaDataTypes[j] == "Time") {
         // Create time cell
-        this.cellChildren[i].push(document.createElement("textarea"));
+        this.cellChildren[i].push(document.createElement("input"));
+        this.cellChildren[i][j].type = "datetime-local";
         this.cells[i][j].appendChild(this.cellChildren[i][j]);
-        this.cellChildren[i][j].innerHTML = new Date(this.tableData[this.schemaKeys[j]]);
+        this.cellChildren[i][j].value = this.datetimeLocal(this.tableData[this.schemaKeys[j]]);
         this.cellChildren[i][j].setAttribute("readonly", "true");
         this.cellChildren[i][j].classList.add("textAreaCell");
 
@@ -351,6 +364,48 @@ class table {
 
   }
 
+  getFilters() {
+    let filters = {};
+    
+    for (let i=0; i<this.cellChildren[0].length; i++) {
+      if (this.schemaDataTypes[i] == "_id") {
+        if (this.cellChildren[0][i].children[2].checked) {
+          filters[this.schemaKeys[i]] = this.cellChildren[0][i].children[1].value; 
+        }
+        
+      } else if (this.schemaDataTypes[i] == "Text" || this.schemaDataTypes[i] == "ReadOnlyText") {
+        if (this.cellChildren[0][i].children[2].checked) {
+          filters[this.schemaKeys[i]] = this.cellChildren[0][i].children[1].value; 
+        }
+        
+      } else if (this.schemaDataTypes[i] == "Time") {
+        filters[this.schemaKeys[i]] = {};
+
+        filters[this.schemaKeys[i]].startTime = this.cellChildren[0][i].children[0].valueAsDate;
+
+        filters[this.schemaKeys[i]].endTime = this.cellChildren[0][i].children[2].valueAsDate;
+        
+      } else if (this.schemaDataTypes[i] == "Multiple Choice" || this.schemaDataTypes[i] == "Multiple Choice ReadOnly") {
+        if (!(this.cellChildren[0][i].children[1].value=="")) {
+          filters[this.schemaKeys[i]] = this.cellChildren[0][i].children[1].value; 
+        }
+
+      } else if (this.schemaDataTypes[i] == "User") {
+        if (this.cellChildren[0][i].children[2].checked) {
+          filters[this.schemaKeys[i]] = this.cellChildren[0][i].children[1].value; 
+        }
+        
+      } else if (this.schemaDataTypes[i] == "File") {  
+        if (this.cellChildren[0][i].children[2].checked) {
+          filters[this.schemaKeys[i]] = this.cellChildren[0][i].children[1].value; 
+        }
+        
+      }
+    }
+
+    return filters
+  }
+
   // Remove row 
   removeRow(issue) {
     if (issue==undefined) {
@@ -390,6 +445,8 @@ class table {
               this.project[i - 1][this.schemaKeys[j]] = "";
             }
   
+          } else if (this.schemaDataTypes[j] == "Time") {
+            this.project[i - 1][this.schemaKeys[j]] = this.datetimeUTC(this.cellChildren[i][j].valueAsDate);
           } else {
             // Everything else
             this.project[i - 1][this.schemaKeys[j]] = this.cellChildren[i][j].value;
@@ -412,6 +469,8 @@ class table {
               this.project[i][this.schemaKeys[j]] = "";
             }
   
+          } else if (this.schemaDataTypes[j] == "Time") {
+            this.project[i - 1][this.schemaKeys[j]] = this.datetimeUTC(this.cellChildren[i][j].valueAsDate);
           } else {
             // Everything else
             this.project[i][this.schemaKeys[j]] = this.cellChildren[i][j].value;
