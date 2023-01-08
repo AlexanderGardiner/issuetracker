@@ -17,6 +17,10 @@ fetch("/getDefaultSchema", {
 
 // Display schema in editable table using inputs
 function displaySchema(schema) {
+
+  if (schema.hasOwnProperty('redirect')) {
+     window.location.href = "/login/login.html"
+  }
   console.log("Displaing schema");
   // Define table for selecting schema
   projectSchema = schema;

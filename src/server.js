@@ -12,6 +12,11 @@ const ObjectId = require('mongodb').ObjectId;
 const fs = require('fs');
 const fileupload = require("express-fileupload");
 
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
+const crypto = require('crypto');
+const session = require('express-session');
+const MongoStore = require('connect-mongo');
 
 // Change working directory 
 process.chdir("src");;
@@ -34,37 +39,94 @@ async function startExpressServer() {
   app.use(bodyParser.json());
   app.use(express.static(__dirname + '/public'));
 
+  app.use(session({
+    secret: "secret",
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({ mongoUrl: 'mongodb+srv://Main:yF5HIDis6Dmwq2fn@sessions.9w0hzlx.mongodb.net/?retryWrites=true&w=majority' })
+  }));
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  passport.serializeUser(function(user, cb) {
+    process.nextTick(function() {
+      cb(null, { id: user.id, username: user.username });
+    });
+  });
+
+  passport.deserializeUser(function(user, cb) {
+    process.nextTick(function() {
+      return cb(null, user);
+    });
+  });
+
+  // Setup passport
+  passport.use(new LocalStrategy(async function verify(username, password, cb) {
+    let row = await MongoDatabase.db("Authentication").collection("Credentials").findOne({ username: username });
+    if (!row) { return cb(null, false, { message: 'Incorrect username or password.' }); }
+
+
+    crypto.pbkdf2(password, Buffer.from(row.salt.toString()), 310000, 32, 'sha256', async function(err, hashedPassword) {
+      if (err) { return cb(err); }
+      if (!crypto.timingSafeEqual(Buffer.from(row.hashedPassword), Buffer.from(hashedPassword.toString()))) {
+        return cb(null, false, { message: 'Incorrect username or password.' });
+      }
+      return cb(null, row);
+    });
+  }));
+
+  app.post('/login/password', passport.authenticate('local', {
+    successRedirect: '/',
+    failureRedirect: '/login/login.html'
+  }));
+
+  app.get('/logout', function(req, res, next) {
+    req.logout(function(err) {
+      if (err) { return next(err); }
+      res.redirect('/');
+    });
+  });
+
   // Get default schema
   app.get('/getDefaultSchema', function(req, res) {
-    console.log("Getting default schema");
-    try {
-      let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
-      res.send(schemaFile.Default);
-    } catch (err) {
-      console.log(err);
+    if (req.user) {
+      console.log("Getting default schema");
+      try {
+        let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
+        res.send(schemaFile.Default);
+      } catch (err) {
+        console.log(err);
+      }
+    } else {
+      respondWithLoginPage(res);
     }
   });
 
   // Get schema of project
   app.post('/getProjectSchema', function(req, res) {
+
     console.log("Getting project schema");
     try {
-      let projectName = String(req.body.projectName);
-      console.log("Getting " + projectName + " Schema");
-      let schema = {};
-      schema[projectName] = {};
+      if (req.user) {
+        let projectName = String(req.body.projectName);
+        console.log("Getting " + projectName + " Schema");
+        let schema = {};
+        schema[projectName] = {};
 
-      // Set ID element in schema
-      schema[projectName]._id = "_id";
+        // Set ID element in schema
+        schema[projectName]._id = "_id";
 
-      // Set project schema
-      schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
-      schema[projectName] = {
-        ...schema[projectName],
-        ...schemaFile[projectName]
-      };
+        // Set project schema
+        schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
+        schema[projectName] = {
+          ...schema[projectName],
+          ...schemaFile[projectName]
+        };
 
-      res.send(schema[projectName]);
+        res.send(schema[projectName]);
+      } else {
+        respondWithLoginPage(res);
+      }
     } catch (err) {
       console.log(err);
       res.send({
@@ -77,104 +139,108 @@ async function startExpressServer() {
   // Edit schema of project 
   app.post('/editProjectSchema', async function(req, res) {
     try {
-      // Define vars
-      let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
-      let oldProjectName = String(req.body.oldProjectName);
-      let newProjectName = String(req.body.newProjectName);
+      if (req.user) {
+        // Define vars
+        let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
+        let oldProjectName = String(req.body.oldProjectName);
+        let newProjectName = String(req.body.newProjectName);
 
-      // Output text saying we are editing schema
-      console.log("Editing " + newProjectName + " Schema")
+        // Output text saying we are editing schema
+        console.log("Editing " + newProjectName + " Schema")
 
-      // Rename project if necessary
-      if (oldProjectName != newProjectName) {
-        await MongoDatabase.db("IssueTracker").collection(oldProjectName).rename(newProjectName);
-        schemaFile[newProjectName] = schemaFile[oldProjectName];
-        delete schemaFile[oldProjectName];
-        fs.rename(('./files/' + oldProjectName), ('./files/' + newProjectName), () => {
-          console.log("File Renamed");
-        });
-      }
+        // Rename project if necessary
+        if (oldProjectName != newProjectName) {
+          await MongoDatabase.db("IssueTracker").collection(oldProjectName).rename(newProjectName);
+          schemaFile[newProjectName] = schemaFile[oldProjectName];
+          delete schemaFile[oldProjectName];
+          fs.rename(('./files/' + oldProjectName), ('./files/' + newProjectName), () => {
+            console.log("File Renamed");
+          });
+        }
 
-      // Setup vars and define ID element
-      let schema = {};
-      schema["_id"] = {
-        "type": "_id"
-      };
+        // Setup vars and define ID element
+        let schema = {};
+        schema["_id"] = {
+          "type": "_id"
+        };
 
-      // Delete unused id element
-      delete schemaFile[newProjectName]["_id"];
+        // Delete unused id element
+        delete schemaFile[newProjectName]["_id"];
 
-      // Declare schema vars
-      let oldSchema = schemaFile[newProjectName];
-      let oldSchemaKeys = Object.keys(oldSchema);
-      let submittedSchema = req.body.schema;
-      let submittedSchemaKeys = Object.keys(submittedSchema);
+        // Declare schema vars
+        let oldSchema = schemaFile[newProjectName];
+        let oldSchemaKeys = Object.keys(oldSchema);
+        let submittedSchema = req.body.schema;
+        let submittedSchemaKeys = Object.keys(submittedSchema);
 
-      // Loop through schema and process based on type
-      for (let i = 0; i < submittedSchemaKeys.length; i++) {
-        if (submittedSchema[submittedSchemaKeys[i]].type != "Multiple Choice") {
-          schema[submittedSchemaKeys[i]] = submittedSchema[submittedSchemaKeys[i]];
-        } else {
-          schema[submittedSchemaKeys[i]] = {
-            "type": "Multiple Choice"
-          };
-
-          if (i < oldSchemaKeys.length && !req.body.schemaIDsToDelete.includes(oldSchemaKeys[i])) {
-            schema[submittedSchemaKeys[i]].options = oldSchema[oldSchemaKeys[i]].options;
+        // Loop through schema and process based on type
+        for (let i = 0; i < submittedSchemaKeys.length; i++) {
+          if (submittedSchema[submittedSchemaKeys[i]].type != "Multiple Choice") {
+            schema[submittedSchemaKeys[i]] = submittedSchema[submittedSchemaKeys[i]];
           } else {
-            schema[submittedSchemaKeys[i]].options = [];
-          }
+            schema[submittedSchemaKeys[i]] = {
+              "type": "Multiple Choice"
+            };
 
-          for (let j = 0; j < submittedSchema[submittedSchemaKeys[i]].newOptions.length; j++) {
-            if (submittedSchema[submittedSchemaKeys[i]].newOptions[j] != "") {
-              schema[submittedSchemaKeys[i]].options.push(submittedSchema[submittedSchemaKeys[i]].newOptions[j]);
+            if (i < oldSchemaKeys.length && !req.body.schemaIDsToDelete.includes(oldSchemaKeys[i])) {
+              schema[submittedSchemaKeys[i]].options = oldSchema[oldSchemaKeys[i]].options;
+            } else {
+              schema[submittedSchemaKeys[i]].options = [];
+            }
+
+            for (let j = 0; j < submittedSchema[submittedSchemaKeys[i]].newOptions.length; j++) {
+              if (submittedSchema[submittedSchemaKeys[i]].newOptions[j] != "") {
+                schema[submittedSchemaKeys[i]].options.push(submittedSchema[submittedSchemaKeys[i]].newOptions[j]);
+              }
             }
           }
         }
-      }
 
-      // Delete properties in database if required
-      if (req.body.deleteOldProperties == true) {
-        for (let j = 0; j < req.body.schemaIDsToDelete.length; j++) {
-          schemaIDToDelete = req.body.schemaIDsToDelete[j];
-          if (schemaFile[newProjectName][req.body.schemaIDsToDelete[j]].type == "File") {
-            let filesToDelete = await MongoDatabase.db("IssueTracker").collection(newProjectName).find({}, { "projection": { [req.body.schemaIDsToDelete[j]]: 1, "_id": 0 } }).toArray();
-            for (let k = 1; k < filesToDelete.length; k++) {
-              if (filesToDelete[k][req.body.schemaIDsToDelete[j]].fileID != undefined) {
-                fs.unlinkSync("./files/" + newProjectName + "/" + filesToDelete[k][req.body.schemaIDsToDelete[j]].fileID);
+        // Delete properties in database if required
+        if (req.body.deleteOldProperties == true) {
+          for (let j = 0; j < req.body.schemaIDsToDelete.length; j++) {
+            schemaIDToDelete = req.body.schemaIDsToDelete[j];
+            if (schemaFile[newProjectName][req.body.schemaIDsToDelete[j]].type == "File") {
+              let filesToDelete = await MongoDatabase.db("IssueTracker").collection(newProjectName).find({}, { "projection": { [req.body.schemaIDsToDelete[j]]: 1, "_id": 0 } }).toArray();
+              for (let k = 1; k < filesToDelete.length; k++) {
+                if (filesToDelete[k][req.body.schemaIDsToDelete[j]].fileID != undefined) {
+                  fs.unlinkSync("./files/" + newProjectName + "/" + filesToDelete[k][req.body.schemaIDsToDelete[j]].fileID);
+                }
+
               }
 
             }
-
-          }
-          await MongoDatabase.db("IssueTracker").collection(newProjectName).updateMany({}, {
-            $unset: {
-              [schemaIDToDelete]: ""
-            }
-          });
-        }
-      }
-
-      // Set schema if it exists
-      if (schemaFile.hasOwnProperty(newProjectName)) {
-        updateSchema(newProjectName, oldProjectName, schema);
-      }
-
-      // Rename properties in database if required
-      for (let j = 0; j < oldSchemaKeys.length; j++) {
-        if (j < submittedSchemaKeys.length) {
-          if (oldSchemaKeys[j] != submittedSchemaKeys[j]) {
             await MongoDatabase.db("IssueTracker").collection(newProjectName).updateMany({}, {
-              $rename: {
-                [oldSchemaKeys[j]]: submittedSchemaKeys[j]
+              $unset: {
+                [schemaIDToDelete]: ""
               }
             });
           }
         }
+
+        // Set schema if it exists
+        if (schemaFile.hasOwnProperty(newProjectName)) {
+          updateSchema(newProjectName, oldProjectName, schema);
+        }
+
+        // Rename properties in database if required
+        for (let j = 0; j < oldSchemaKeys.length; j++) {
+          if (j < submittedSchemaKeys.length) {
+            if (oldSchemaKeys[j] != submittedSchemaKeys[j]) {
+              await MongoDatabase.db("IssueTracker").collection(newProjectName).updateMany({}, {
+                $rename: {
+                  [oldSchemaKeys[j]]: submittedSchemaKeys[j]
+                }
+              });
+            }
+          }
+        }
+
+
+        res.send("Schema Edited");
+      } else {
+        respondWithLoginPage(res);
       }
-
-
-      res.send("Schema Edited");
     } catch (err) {
       console.log(err);
       res.send({
@@ -186,29 +252,37 @@ async function startExpressServer() {
 
   // Get list of project names
   app.get('/getProjectNames', function(req, res) {
-    console.log("Getting Project Names");
-    getProjectNames().then((value) => {
-      res.send(value);
-    });
+    if (req.user) {
+      console.log("Getting Project Names");
+      getProjectNames().then((value) => {
+        res.send(value);
+      });
+    } else {
+      respondWithLoginPage(res);
+    }
 
   });
 
   // Create new project in schema and in database 
   app.post('/createNewProject', function(req, res) {
     try {
-      console.log("Creating New Project " + req.body.projectName);
-      // Set updated time and set in database
-      let updatedTime = (new Date(Date.now())).toString();
-      createNewProject(req.body.projectName);
-      createNewIssue(req.body.projectName, {
-        "projectTimeEditedExists": "true",
-        "projectTimeEdited": updatedTime,
-        "filesUploaded": 0
-      });
+      if (req.user) {
+        console.log("Creating New Project " + req.body.projectName);
+        // Set updated time and set in database
+        let updatedTime = (new Date(Date.now())).toString();
+        createNewProject(req.body.projectName);
+        createNewIssue(req.body.projectName, {
+          "projectTimeEditedExists": "true",
+          "projectTimeEdited": updatedTime,
+          "filesUploaded": 0
+        });
 
-      // Create schema
-      setSchema(req.body.projectName, req.body.schema);
-      res.send("Creating New Project");
+        // Create schema
+        setSchema(req.body.projectName, req.body.schema);
+        res.send("Creating New Project");
+      } else {
+        respondWithLoginPage(res);
+      }
     } catch (err) {
       console.log(err);
       res.send({
@@ -221,50 +295,55 @@ async function startExpressServer() {
   // Get project data from schema and from database
   app.post('/getProject', async function(req, res) {
     try {
-      console.log("Getting Project: " + req.body.projectName);
-      let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
-      let schema = schemaFile[req.body.projectName];
-      let project;
-      if (req.body.hasOwnProperty('filters')) {
-        let filters = req.body.filters;
-        let filtersKeys = Object.keys(filters);
-        console.log(filters)
-        console.log(filtersKeys)
-        let filter = {projectTimeEditedExists: {$exists: false}};
-        for (let i=0; i<filtersKeys.length; i++) {
-          if (schema[filtersKeys[i]].type == "_id") {
-            filter[filtersKeys[i]] = {$eq: ObjectId(filters[filtersKeys[i]].toString())};
-          } else if (schema[filtersKeys[i]].type == "Text" || schema[filtersKeys[i]].type == "ReadOnlyText") {
-            console.log(filters[filtersKeys[i]])
-            filter[filtersKeys[i]] = {$eq: filters[filtersKeys[i]]};
-          } else if (schema[filtersKeys[i]].type == "Time") {
-            if (!(filters[filtersKeys[i]].startTime == null) && !(filters[filtersKeys[i]].endTime == null)) {
-              filter[filtersKeys[i]] = {$gte:new Date(filters[filtersKeys[i]].startTime),$lt:new Date(filters[filtersKeys[i]].endTime)};
-            } else if (!(filters[filtersKeys[i]].startTime == null)) {
-              filter[filtersKeys[i]] = {$gte:new Date(filters[filtersKeys[i]].startTime)};
-            } else if (!(filters[filtersKeys[i]].endTime == null)) {
-              filter[filtersKeys[i]] = {$lt:new Date(filters[filtersKeys[i]].endTime)};
+      if (req.user) {
+        console.log("Getting Project: " + req.body.projectName);
+        let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
+        let schema = schemaFile[req.body.projectName];
+        let project;
+        if (req.body.hasOwnProperty('filters')) {
+          let filters = req.body.filters;
+          let filtersKeys = Object.keys(filters);
+          console.log(filters)
+          console.log(filtersKeys)
+          let filter = { projectTimeEditedExists: { $exists: false } };
+          for (let i = 0; i < filtersKeys.length; i++) {
+            if (schema[filtersKeys[i]].type == "_id") {
+              filter[filtersKeys[i]] = { $eq: ObjectId(filters[filtersKeys[i]].toString()) };
+            } else if (schema[filtersKeys[i]].type == "Text" || schema[filtersKeys[i]].type == "ReadOnlyText") {
+              console.log(filters[filtersKeys[i]])
+              filter[filtersKeys[i]] = { $eq: filters[filtersKeys[i]] };
+            } else if (schema[filtersKeys[i]].type == "Time") {
+              if (!(filters[filtersKeys[i]].startTime == null) && !(filters[filtersKeys[i]].endTime == null)) {
+                filter[filtersKeys[i]] = { $gte: new Date(filters[filtersKeys[i]].startTime), $lt: new Date(filters[filtersKeys[i]].endTime) };
+              } else if (!(filters[filtersKeys[i]].startTime == null)) {
+                filter[filtersKeys[i]] = { $gte: new Date(filters[filtersKeys[i]].startTime) };
+              } else if (!(filters[filtersKeys[i]].endTime == null)) {
+                filter[filtersKeys[i]] = { $lt: new Date(filters[filtersKeys[i]].endTime) };
+              }
+
+            } else if (schema[filtersKeys[i]].type == "Multiple Choice" || schema[filtersKeys[i]].type == "Multiple Choice ReadOnly") {
+              filter[filtersKeys[i]] = { $eq: filters[filtersKeys[i]] };
+            } else if (schema[filtersKeys[i]].type == "User") {
+              filter[filtersKeys[i]] = { $eq: filters[filtersKeys[i]] };
+            } else if (schema[filtersKeys[i]].type == "File") {
+              filter[filtersKeys[i] + ".fileName"] = { $eq: filters[filtersKeys[i]] };
             }
-           
-          } else if (schema[filtersKeys[i]].type == "Multiple Choice" || schema[filtersKeys[i]].type == "Multiple Choice ReadOnly") {
-           filter[filtersKeys[i]] = {$eq: filters[filtersKeys[i]]};
-          } else if (schema[filtersKeys[i]].type == "User") {
-            filter[filtersKeys[i]] = {$eq: filters[filtersKeys[i]]};
-          } else if (schema[filtersKeys[i]].type == "File") {  
-           filter[filtersKeys[i]+".fileName"] = {$eq: filters[filtersKeys[i]]};
           }
+          console.log(filter)
+          project = await getProject(req.body.projectName, filter);
+        } else {
+          project = await getProject(req.body.projectName, { projectTimeEditedExists: { $exists: false } });
         }
-        console.log(filter)
-        project = await getProject(req.body.projectName, filter);
+
+
+        res.send(JSON.stringify({
+          "project": project,
+          "schema": schema,
+        }));
       } else {
-        project = await getProject(req.body.projectName, {projectTimeEditedExists: {$exists: false}});
+        respondWithLoginPage(res);
+
       }
-
-
-      res.send(JSON.stringify({
-        "project": project,
-        "schema": schema,
-      }));
     } catch (err) {
       console.log(err);
       res.send({
@@ -273,17 +352,23 @@ async function startExpressServer() {
     }
 
 
+
+
   });
 
 
   // Get project data from schema and from database
   app.post('/getProjectFile', async function(req, res) {
     try {
-      let issueID = req.body.issueID;
-      let propertyName = req.body.propertyName;
-      console.log("Getting Project File: " + req.body.fileName + " from " + req.body.projectName);
-      let fileID = (await MongoDatabase.db("IssueTracker").collection(req.body.projectName).findOne({ _id: ObjectId(issueID) }))[propertyName].fileID;
-      res.sendFile(__dirname + "/files/" + req.body.projectName + "/" + fileID);
+      if (req.user) {
+        let issueID = req.body.issueID;
+        let propertyName = req.body.propertyName;
+        console.log("Getting Project File: " + req.body.fileName + " from " + req.body.projectName);
+        let fileID = (await MongoDatabase.db("IssueTracker").collection(req.body.projectName).findOne({ _id: ObjectId(issueID) }))[propertyName].fileID;
+        res.sendFile(__dirname + "/files/" + req.body.projectName + "/" + fileID);
+      } else {
+        respondWithLoginPage(res);
+      }
     } catch (err) {
       console.log(err);
       res.send({
@@ -300,106 +385,110 @@ async function startExpressServer() {
   app.post('/updateProject', async function(req, res) {
 
     try {
-      // Vars
-      let projectName = req.body.projectName;
-      let path = './files/' + projectName + "/";
-      let tempFilesUploaded = 0;
-      console.log("Updating Project: " + JSON.stringify(projectName));
-      
-      let updatedTime = new Date(Date.now());
-      await editEditedTime(projectName, updatedTime);
+      if (req.user) {
+        // Vars
+        let projectName = req.body.projectName;
+        let path = './files/' + projectName + "/";
+        let tempFilesUploaded = 0;
+        console.log("Updating Project: " + JSON.stringify(projectName));
 
-      // Delete files that need deleting
-      console.log("Deleting Project Files from Project: " + projectName);
+        let updatedTime = new Date(Date.now());
+        await editEditedTime(projectName, updatedTime);
 
-      for (let i = 0; i < req.body.projectFileIDsToDelete.length; i++) {
-        let fileID = req.body.projectFileIDsToDelete[i];
-        fs.unlinkSync(path + fileID, (err => {
-          if (err) console.log(err)
-        }));
-      }
+        // Delete files that need deleting
+        console.log("Deleting Project Files from Project: " + projectName);
+
+        for (let i = 0; i < req.body.projectFileIDsToDelete.length; i++) {
+          let fileID = req.body.projectFileIDsToDelete[i];
+          fs.unlinkSync(path + fileID, (err => {
+            if (err) console.log(err)
+          }));
+        }
 
 
 
-      project = req.body.project;
+        project = req.body.project;
 
-      for (let i = 0; i < project.length; i++) {
-        if (project[i]._id == "Not In Database") {
-          // Send to database if new property
-          delete project[i]._id;
+        for (let i = 0; i < project.length; i++) {
+          if (project[i]._id == "Not In Database") {
+            // Send to database if new property
+            delete project[i]._id;
 
-          let filesUploaded = (await MongoDatabase.db("IssueTracker").collection(projectName).findOne({})).filesUploaded;
-          let keys = Object.keys(project[i]);
-          for (let j = 0; j < keys.length; j++) {
-            if (req.body.schema[req.body.schemaKeys[j + 1]].type == "File") { 
-              console.log(project[i][req.body.schemaKeys[j + 1]].fileName != "")
-              if (project[i][req.body.schemaKeys[j + 1]] != "") {
-                let fileID = filesUploaded + project[i][keys[j]].substring(project[i][keys[j]].lastIndexOf("."), project[i][keys[j]].length);
-                project[i][req.body.schemaKeys[j + 1]] = { "fileName": project[i][req.body.schemaKeys[j + 1]], "fileID": fileID };
-                await MongoDatabase.db("IssueTracker").collection(projectName).updateOne({}
-                  , {
-                    $set: {
-                      "filesUploaded": filesUploaded + 1
-                    }
-                  }, function(err, res) {
-                    if (err) throw err;
-                  });
+            let filesUploaded = (await MongoDatabase.db("IssueTracker").collection(projectName).findOne({})).filesUploaded;
+            let keys = Object.keys(project[i]);
+            for (let j = 0; j < keys.length; j++) {
+              if (req.body.schema[req.body.schemaKeys[j + 1]].type == "File") {
+                console.log(project[i][req.body.schemaKeys[j + 1]].fileName != "")
+                if (project[i][req.body.schemaKeys[j + 1]] != "") {
+                  let fileID = filesUploaded + project[i][keys[j]].substring(project[i][keys[j]].lastIndexOf("."), project[i][keys[j]].length);
+                  project[i][req.body.schemaKeys[j + 1]] = { "fileName": project[i][req.body.schemaKeys[j + 1]], "fileID": fileID };
+                  await MongoDatabase.db("IssueTracker").collection(projectName).updateOne({}
+                    , {
+                      $set: {
+                        "filesUploaded": filesUploaded + 1
+                      }
+                    }, function(err, res) {
+                      if (err) throw err;
+                    });
 
-                fs.renameSync("./files/" + projectName + "/" + project[i][req.body.schemaKeys[j + 1]].fileName + (tempFilesUploaded.toString()), "./files/" + projectName + "/" + fileID);
+                  fs.renameSync("./files/" + projectName + "/" + project[i][req.body.schemaKeys[j + 1]].fileName + (tempFilesUploaded.toString()), "./files/" + projectName + "/" + fileID);
 
-                filesUploaded += 1;
-                tempFilesUploaded += 1;
+                  filesUploaded += 1;
+                  tempFilesUploaded += 1;
+                }
+              } else if (req.body.schema[req.body.schemaKeys[j + 1]].type == "Time") {
+                project[i][keys[j + 1]] = new Date(project[i][keys[j]]);
               }
-            } else if (req.body.schema[req.body.schemaKeys[j + 1]].type == "Time") {
-              project[i][keys[j + 1]] =  new Date(project[i][keys[j]]);
-            } 
-          }
-
-          
-          await createNewIssue(projectName, project[i]);
-
-        } else {
-
-          // Send to database if existing property
-          let ID = project[i]._id;
-          delete project[i]._id;
-          let keys = Object.keys(project[i]);
-          for (let j = 0; j < keys.length; j++) {
-            if (req.body.schema[req.body.schemaKeys[j + 1]].type == "File") {
-              if (project[i][req.body.schemaKeys[j + 1]] != "") {
-                let filesUploaded = (await MongoDatabase.db("IssueTracker").collection(projectName).findOne({})).filesUploaded;
-                let fileID = filesUploaded + project[i][req.body.schemaKeys[j + 1]].substring(project[i][keys[j]].lastIndexOf("."), project[i][keys[j]].length);
-                await editIssue(projectName, ID, keys[j], { "fileName": project[i][keys[j]], "fileID": fileID });
-                await MongoDatabase.db("IssueTracker").collection(projectName).updateOne({}
-                  , {
-                    $set: {
-                      "filesUploaded": filesUploaded + 1
-                    }
-                  }, function(err, res) {
-                    if (err) throw err;
-                  });
-
-
-                fs.renameSync("./files/" + projectName + "/" + project[i][req.body.schemaKeys[j + 1]] + (tempFilesUploaded.toString()), "./files/" + projectName + "/" + fileID);
-                filesUploaded += 1;
-                tempFilesUploaded += 1;
-              }
-
-            } else if (req.body.schema[req.body.schemaKeys[j + 1]].type == "Time") {
-              await editIssue(projectName, ID, keys[j], new Date(project[i][keys[j]]));
-            } else {
-              await editIssue(projectName, ID, keys[j], project[i][keys[j]]);
             }
 
 
+            await createNewIssue(projectName, project[i]);
+
+          } else {
+
+            // Send to database if existing property
+            let ID = project[i]._id;
+            delete project[i]._id;
+            let keys = Object.keys(project[i]);
+            for (let j = 0; j < keys.length; j++) {
+              if (req.body.schema[req.body.schemaKeys[j + 1]].type == "File") {
+                if (project[i][req.body.schemaKeys[j + 1]] != "") {
+                  let filesUploaded = (await MongoDatabase.db("IssueTracker").collection(projectName).findOne({})).filesUploaded;
+                  let fileID = filesUploaded + project[i][req.body.schemaKeys[j + 1]].substring(project[i][keys[j]].lastIndexOf("."), project[i][keys[j]].length);
+                  await editIssue(projectName, ID, keys[j], { "fileName": project[i][keys[j]], "fileID": fileID });
+                  await MongoDatabase.db("IssueTracker").collection(projectName).updateOne({}
+                    , {
+                      $set: {
+                        "filesUploaded": filesUploaded + 1
+                      }
+                    }, function(err, res) {
+                      if (err) throw err;
+                    });
+
+
+                  fs.renameSync("./files/" + projectName + "/" + project[i][req.body.schemaKeys[j + 1]] + (tempFilesUploaded.toString()), "./files/" + projectName + "/" + fileID);
+                  filesUploaded += 1;
+                  tempFilesUploaded += 1;
+                }
+
+              } else if (req.body.schema[req.body.schemaKeys[j + 1]].type == "Time") {
+                await editIssue(projectName, ID, keys[j], new Date(project[i][keys[j]]));
+              } else {
+                await editIssue(projectName, ID, keys[j], project[i][keys[j]]);
+              }
+
+
+            }
+
           }
-
         }
-      }
-      // Delete any deleted issues
-      await deleteIssues(req.body.issueIDsToDelete, projectName);
+        // Delete any deleted issues
+        await deleteIssues(req.body.issueIDsToDelete, projectName);
 
-      res.send("Success");
+        res.send("Success");
+      } else {
+        respondWithLoginPage(res);
+      }
     } catch (err) {
       console.log(err);
 
@@ -412,28 +501,32 @@ async function startExpressServer() {
   // Update project files
   app.post('/updateProjectFiles', async function(req, res) {
     try {
-      // Vars
-      let files = req.files;
-      let fileKeys = Object.keys(files);
-      let projectName = req.query.projectName;
-      let path = './files/' + projectName + "/";
+      if (req.user) {
+        // Vars
+        let files = req.files;
+        let fileKeys = Object.keys(files);
+        let projectName = req.query.projectName;
+        let path = './files/' + projectName + "/";
 
-      // Create folder if it doesn't exists/
-      console.log("Updating Project File from Project: " + projectName);
-      if (!fs.existsSync("./files/" + projectName)) {
-        fs.mkdirSync("./files/" + projectName);
+        // Create folder if it doesn't exists/
+        console.log("Updating Project File from Project: " + projectName);
+        if (!fs.existsSync("./files/" + projectName)) {
+          fs.mkdirSync("./files/" + projectName);
 
+        }
+        // Get file and put into folder
+        for (let i = 0; i < fileKeys.length; i++) {
+          let fileName = files[fileKeys[i]].name;
+          console.log("Recieved file: " + fileName)
+          files[fileKeys[i]].mv(path + fileName);
+
+        }
+
+
+        res.send("Success");
+      } else {
+        respondWithLoginPage(res);
       }
-      // Get file and put into folder
-      for (let i = 0; i < fileKeys.length; i++) {
-        let fileName = files[fileKeys[i]].name;
-        console.log("Recieved file: " + fileName)
-        files[fileKeys[i]].mv(path + fileName);
-
-      }
-
-
-      res.send("Success");
     } catch (err) {
       console.log(err);
       res.send({
@@ -446,18 +539,21 @@ async function startExpressServer() {
   // Delete project files
   app.post('/deleteProjectFiles', async function(req, res) {
     try {
-      console.log("Deleting Project Files from Project: " + projectName);
-      let files = req.files;
-      let fileKeys = Object.keys(files);
-      let projectName = req.query.projectName;
-      let path = './files/' + projectName + "/"
+      if (req.user) {
+        console.log("Deleting Project Files from Project: " + projectName);
+        let files = req.files;
+        let fileKeys = Object.keys(files);
+        let projectName = req.query.projectName;
+        let path = './files/' + projectName + "/"
 
-      for (let i = 0; i < fileKeys.length; i++) {
-        fs.unlinkSync(path + files[fileKeys[i]].name, (err => {
-          if (err) console.log(err)
-        }));
+        for (let i = 0; i < fileKeys.length; i++) {
+          fs.unlinkSync(path + files[fileKeys[i]].name, (err => {
+            if (err) console.log(err)
+          }));
+        }
+      } else {
+        respondWithLoginPage(res);
       }
-
 
     } catch (err) {
       console.log(err);
@@ -472,10 +568,13 @@ async function startExpressServer() {
   // Delete project
   app.post('/deleteProject', async function(req, res) {
     try {
-      console.log("Deleting Project: " + req.body.projectName);
-      await deleteProject(req.body.projectName);
-      res.send("Deleted");
-
+      if (req.user) {
+        console.log("Deleting Project: " + req.body.projectName);
+        await deleteProject(req.body.projectName);
+        res.send("Deleted");
+      } else {
+        respondWithLoginPage(res);
+      }
     } catch (err) {
       console.log(err);
       res.send({
@@ -534,7 +633,7 @@ async function getProjectNames() {
 async function getProject(projectName, filters) {
   console.log("Getting Project: " + projectName);
   let project = await MongoDatabase.db("IssueTracker").collection(projectName).find(filters).toArray();
-  let projectHeader = await MongoDatabase.db("IssueTracker").collection(projectName).findOne({ projectTimeEditedExists: {$exists : true} });
+  let projectHeader = await MongoDatabase.db("IssueTracker").collection(projectName).findOne({ projectTimeEditedExists: { $exists: true } });
   project.unshift(projectHeader);
   return project
 }
@@ -647,6 +746,10 @@ function updateSchema(projectName, oldProjectName, schema) {
   }
 
 
+}
+
+function respondWithLoginPage(res) {
+  res.send({redirect: "/login"})
 }
 
 // Function to run at startup

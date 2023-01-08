@@ -12,6 +12,9 @@ fetch("/getProjectNames", {
 
 // Display projects in a list
 function displayProjectNames(projectNames) {
+  if (projectNames.hasOwnProperty('redirect')) {
+     window.location.href = "/login/login.html"
+  }
   console.log("Displaying Project Names")
   // Array to access created buttons
   projectButtons = [];

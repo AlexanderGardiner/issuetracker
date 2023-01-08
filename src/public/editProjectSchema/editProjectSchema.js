@@ -29,7 +29,9 @@ let schemaIDsToDelete = [];
 
 // Display schema in editable table using inputs
 function displaySchema(schema) {
-  
+  if (schema.hasOwnProperty('redirect')) {
+    window.location.href = "/login/login.html"
+  }
   console.log("Displaying schema");
   // Define vars and schema for table
   projectSchema = schema;

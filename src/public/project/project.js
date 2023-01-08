@@ -31,6 +31,10 @@ let downloadedFileName;
 
 // Display project in editable table
 function displayProject(data) {
+  if (data.hasOwnProperty('redirect')) {
+     window.location.href = "/login/login.html"
+  }
+  
   console.log("Displaying project: " + projectName);
   console.log(data)
   document.getElementById("timeEdited").innerHTML = "Time Edited: " + new Date(data.project[0].projectTimeEdited);
