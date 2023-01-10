@@ -3,8 +3,9 @@
 // Express for routing
 // Body-parser for parsing the body
 // Mongodb for interfacing with the database
-const process = require('process')
+const process = require('process');
 const express = require("express");
+const session = require('express-session');
 const app = express();
 const bodyParser = require('body-parser')
 const MongoClient = require('mongodb').MongoClient;
@@ -15,7 +16,7 @@ const fileupload = require("express-fileupload");
 const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const crypto = require('crypto');
-const session = require('express-session');
+
 const MongoStore = require('connect-mongo');
 
 // Change working directory 
@@ -23,6 +24,7 @@ process.chdir("src");;
 
 // Vars for mongodb database
 var url = "mongodb+srv://Main:yF5HIDis6Dmwq2fn@issuetracker.9w0hzlx.mongodb.net/?retryWrites=true&w=majority";
+//var url = "mongodb+srv://Sus:OBPuh2Y808ieLUzX@cluster0.czvwi.mongodb.net/?retryWrites=true&w=majority"
 //var url = "mongodb://localhost:27017";
 var MongoDatabase;
 
@@ -38,15 +40,35 @@ async function startExpressServer() {
   app.use(fileupload());
   app.use(bodyParser.json());
   app.use(express.static(__dirname + '/public'));
+  
 
   app.use(session({
-    secret: "secret",
+    secret: '7861',
     resave: false,
     saveUninitialized: false,
-    store: MongoStore.create({ mongoUrl: 'mongodb+srv://Main:yF5HIDis6Dmwq2fn@sessions.9w0hzlx.mongodb.net/?retryWrites=true&w=majority' })
+    store: MongoStore.create({ mongoUrl: url })
   }));
   app.use(passport.initialize());
   app.use(passport.session());
+
+
+  // Setup passport
+  passport.use(new LocalStrategy(async function verify(username, password, cb) {
+    let row = await MongoDatabase.db("Authentication").collection("Credentials").findOne({ username: username });
+    if (!row) { return cb(null, false, { message: 'Incorrect username or password.' }); }
+
+
+    crypto.pbkdf2(password, Buffer.from(row.salt.toString()), 310000, 32, 'sha256', async function(err, hashedPassword) {
+      if (err) { return cb(err); }
+      if (Buffer.from(row.hashedPassword).byteLength != Buffer.from(hashedPassword.toString()).byteLength) {
+        return cb(null, false, { message: 'Incorrect username or password.' });
+      }
+      if (!crypto.timingSafeEqual(Buffer.from(row.hashedPassword), Buffer.from(hashedPassword.toString()))) {
+        return cb(null, false, { message: 'Incorrect username or password.' });
+      }
+      return cb(null, row);
+    });
+  }));
 
   passport.serializeUser(function(user, cb) {
     process.nextTick(function() {
@@ -59,22 +81,7 @@ async function startExpressServer() {
       return cb(null, user);
     });
   });
-
-  // Setup passport
-  passport.use(new LocalStrategy(async function verify(username, password, cb) {
-    let row = await MongoDatabase.db("Authentication").collection("Credentials").findOne({ username: username });
-    if (!row) { return cb(null, false, { message: 'Incorrect username or password.' }); }
-
-
-    crypto.pbkdf2(password, Buffer.from(row.salt.toString()), 310000, 32, 'sha256', async function(err, hashedPassword) {
-      if (err) { return cb(err); }
-      if (!crypto.timingSafeEqual(Buffer.from(row.hashedPassword), Buffer.from(hashedPassword.toString()))) {
-        return cb(null, false, { message: 'Incorrect username or password.' });
-      }
-      return cb(null, row);
-    });
-  }));
-
+  
   app.post('/login/password', passport.authenticate('local', {
     successRedirect: '/',
     failureRedirect: '/login/login.html'
@@ -86,6 +93,28 @@ async function startExpressServer() {
       res.redirect('/');
     });
   });
+
+  app.get('/adminPanel.html', async function(req, res) {
+    if (req.user) {
+      try {
+        console.log("Getting admin panel");
+        let usernameType = await (MongoDatabase.db("Authentication").collection("Credentials").findOne({ username: req.user.username }, { projection: {userType: 1}}));
+        if (usernameType.userType=="Admin") {
+          res.sendFile(__dirname + "/adminPanel.html");
+        } else {
+          res.redirect("/login/login.html");
+        }
+        
+      
+        
+      } catch (err) {
+        console.log(err);
+      }
+    } else {
+      res.redirect("/login/login.html");
+    }
+  });
+  
 
   // Get default schema
   app.get('/getDefaultSchema', function(req, res) {
@@ -583,6 +612,9 @@ async function startExpressServer() {
     }
   });
 
+
+  
+  
   // Set express server to listen
   app.listen(PORT, function(err) {
     if (err) console.log(err);
@@ -749,7 +781,8 @@ function updateSchema(projectName, oldProjectName, schema) {
 }
 
 function respondWithLoginPage(res) {
-  res.send({redirect: "/login"})
+  
+  res.send({redirect: "/login"});
 }
 
 // Function to run at startup
