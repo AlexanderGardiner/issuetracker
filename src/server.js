@@ -39,8 +39,8 @@ async function startExpressServer() {
   }));
   app.use(fileupload());
   app.use(bodyParser.json());
-  app.use(express.static(__dirname + '/public'));
-  
+
+
 
   app.use(session({
     secret: '7861',
@@ -59,7 +59,8 @@ async function startExpressServer() {
 
 
     crypto.pbkdf2(password, Buffer.from(row.salt.toString()), 310000, 32, 'sha256', async function(err, hashedPassword) {
-      if (err) { return cb(err); }
+      if (err) { console.log(err); return cb(err); }
+
       if (Buffer.from(row.hashedPassword).byteLength != Buffer.from(hashedPassword.toString()).byteLength) {
         return cb(null, false, { message: 'Incorrect username or password.' });
       }
@@ -81,7 +82,26 @@ async function startExpressServer() {
       return cb(null, user);
     });
   });
-  
+
+  app.use((req, res, next) => {
+    if (req.user) {
+      console.log("Valid user")
+      console.log(req.user.username)
+      next();
+    } else {
+      if (req.path != "/login/login.html" && req.path != "/login/password") {
+        console.log("Redirecting to login page");
+        res.redirect("/login/login.html");
+      } else {
+        next();
+      }
+
+    }
+
+  });
+
+  app.use(express.static(__dirname + '/public'));
+
   app.post('/login/password', passport.authenticate('local', {
     successRedirect: '/',
     failureRedirect: '/login/login.html'
@@ -98,15 +118,15 @@ async function startExpressServer() {
     if (req.user) {
       try {
         console.log("Getting admin panel");
-        let usernameType = await (MongoDatabase.db("Authentication").collection("Credentials").findOne({ username: req.user.username }, { projection: {userType: 1}}));
-        if (usernameType.userType=="Admin") {
-          res.sendFile(__dirname + "/adminPanel.html");
+        let usernameType = await (MongoDatabase.db("Authentication").collection("Credentials").findOne({ username: req.user.username }, { projection: { userType: 1 } }));
+        if (usernameType.userType == "Admin") {
+          res.sendFile(__dirname + "private/adminPanel/adminPanel.html");
         } else {
           res.redirect("/login/login.html");
         }
-        
-      
-        
+
+
+
       } catch (err) {
         console.log(err);
       }
@@ -114,7 +134,8 @@ async function startExpressServer() {
       res.redirect("/login/login.html");
     }
   });
-  
+
+
 
   // Get default schema
   app.get('/getDefaultSchema', function(req, res) {
@@ -364,7 +385,7 @@ async function startExpressServer() {
           project = await getProject(req.body.projectName, { projectTimeEditedExists: { $exists: false } });
         }
 
-
+        
         res.send(JSON.stringify({
           "project": project,
           "schema": schema,
@@ -412,7 +433,6 @@ async function startExpressServer() {
 
   // Update project issues
   app.post('/updateProject', async function(req, res) {
-
     try {
       if (req.user) {
         // Vars
@@ -613,8 +633,8 @@ async function startExpressServer() {
   });
 
 
-  
-  
+
+
   // Set express server to listen
   app.listen(PORT, function(err) {
     if (err) console.log(err);
@@ -667,6 +687,7 @@ async function getProject(projectName, filters) {
   let project = await MongoDatabase.db("IssueTracker").collection(projectName).find(filters).toArray();
   let projectHeader = await MongoDatabase.db("IssueTracker").collection(projectName).findOne({ projectTimeEditedExists: { $exists: true } });
   project.unshift(projectHeader);
+  
   return project
 }
 
@@ -781,8 +802,8 @@ function updateSchema(projectName, oldProjectName, schema) {
 }
 
 function respondWithLoginPage(res) {
-  
-  res.send({redirect: "/login"});
+
+  res.send({ redirect: "/login" });
 }
 
 // Function to run at startup
