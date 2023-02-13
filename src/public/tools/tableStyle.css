@@ -75,6 +75,10 @@ h1.tableHeaderCellChild {
   width: 1000px;
 }
 
+.buttonCell {
+  
+}
+
 input:invalid {
   border: red solid 3px;
 }

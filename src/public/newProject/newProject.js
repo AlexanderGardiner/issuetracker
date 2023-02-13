@@ -15,6 +15,18 @@ fetch("/getDefaultSchema", {
 .then(response => response.json())
 .then(data => displaySchema(data));
 
+fetch("/checkLoggedIn", {
+  method: 'GET',
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'access-control-allow-origin': '*'
+  }
+  
+})
+.then(response => response.json())
+.then(username => document.getElementById("username").innerHTML = username.Username)
+
 // Display schema in editable table using inputs
 function displaySchema(schema) {
 

@@ -23,7 +23,8 @@ const MongoStore = require('connect-mongo');
 process.chdir("src");;
 
 // Vars for mongodb database
-var url = "mongodb+srv://Main:yF5HIDis6Dmwq2fn@issuetracker.9w0hzlx.mongodb.net/?retryWrites=true&w=majority";
+//var url = "mongodb+srv://Main:yF5HIDis6Dmwq2fn@issuetracker.9w0hzlx.mongodb.net/?retryWrites=true&w=majority";
+var url = "mongodb+srv://Main:Y7yVJWKwHmmhZ40a@issuetracker.9w0hzlx.mongodb.net/?retryWrites=true&w=majority";
 //var url = "mongodb+srv://Sus:OBPuh2Y808ieLUzX@cluster0.czvwi.mongodb.net/?retryWrites=true&w=majority"
 //var url = "mongodb://localhost:27017";
 var MongoDatabase;
@@ -54,6 +55,7 @@ async function startExpressServer() {
 
   // Setup passport
   passport.use(new LocalStrategy(async function verify(username, password, cb) {
+
     let row = await MongoDatabase.db("Authentication").collection("Credentials").findOne({ username: username });
     if (!row) { return cb(null, false, { message: 'Incorrect username or password.' }); }
 
@@ -64,6 +66,7 @@ async function startExpressServer() {
       if (Buffer.from(row.hashedPassword).byteLength != Buffer.from(hashedPassword.toString()).byteLength) {
         return cb(null, false, { message: 'Incorrect username or password.' });
       }
+
       if (!crypto.timingSafeEqual(Buffer.from(row.hashedPassword), Buffer.from(hashedPassword.toString()))) {
         return cb(null, false, { message: 'Incorrect username or password.' });
       }
@@ -111,12 +114,40 @@ async function startExpressServer() {
     });
   });
 
+  app.get('/checkLoggedIn', async function(req, res) {
+    if (req.user) {
+      res.send({"Username":req.user.username});
+    } else {
+      res.sendStatus(401);
+    }
+  });
+
   app.get('/adminPanel.html', async function(req, res) {
     if (req.user) {
       try {
         let usernameType = await (MongoDatabase.db("Authentication").collection("Credentials").findOne({ username: req.user.username }, { projection: { userType: 1 } }));
         if (usernameType.userType == "Admin") {
-          res.sendFile(__dirname + "private/adminPanel/adminPanel.html");
+          res.sendFile(__dirname + "/private/adminPanel/adminPanel.html");
+        } else {
+          res.redirect("/login/login.html");
+        }
+
+
+
+      } catch (err) {
+        console.log(err);
+      }
+    } else {
+      res.redirect("/login/login.html");
+    }
+  });
+
+  app.get('/adminPanel.js', async function(req, res) {
+    if (req.user) {
+      try {
+        let usernameType = await (MongoDatabase.db("Authentication").collection("Credentials").findOne({ username: req.user.username }, { projection: { userType: 1 } }));
+        if (usernameType.userType == "Admin") {
+          res.sendFile(__dirname + "/private/adminPanel/adminPanel.js");
         } else {
           res.redirect("/login/login.html");
         }
@@ -132,6 +163,7 @@ async function startExpressServer() {
   });
 
 
+  
 
   // Get default schema
   app.get('/getDefaultSchema', function(req, res) {
@@ -139,6 +171,47 @@ async function startExpressServer() {
       try {
         let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
         res.send(schemaFile.Default);
+      } catch (err) {
+        console.log(err);
+      }
+    } else {
+      respondWithLoginPage(res);
+    }
+  });
+
+  // Get users
+  app.post('/getUsers', async function(req, res) {
+    if (req.user) {
+      try {
+        let usernameType = await (MongoDatabase.db("Authentication").collection("Credentials").findOne({ username: req.user.username }, { projection: { userType: 1 } }));
+        if (usernameType.userType == "Admin") {
+          let query = {};
+          if (req.body.hasOwnProperty("filters")) {
+            
+            let filters = req.body.filters;
+            let filterKeys = Object.keys(filters);
+           
+            for (let i=0; i<filterKeys.length; i++) {
+              if (filterKeys[i] == "Username") {
+                query.username = filters["Username"];
+              } 
+  
+              if (filterKeys[i] == "User Type") {
+                query.userType = filters["User Type"];
+              }
+            }
+
+          }
+          
+      
+          let options = {
+            sort: {username : 1 },
+            projection: {username: 1, userType: 1 },
+          };
+      
+          let users = await MongoDatabase.db("Authentication").collection("Credentials").find(query, options).toArray();
+          res.send({"Users":users});
+        }
       } catch (err) {
         console.log(err);
       }
@@ -365,7 +438,7 @@ async function startExpressServer() {
           project = await getProject(req.body.projectName, { projectTimeEditedExists: { $exists: false } });
         }
 
-        
+
         res.send(JSON.stringify({
           "project": project,
           "schema": schema,
@@ -655,7 +728,7 @@ async function getProject(projectName, filters) {
   let project = await MongoDatabase.db("IssueTracker").collection(projectName).find(filters).limit(20).toArray();
   let projectHeader = await MongoDatabase.db("IssueTracker").collection(projectName).findOne({ projectTimeEditedExists: { $exists: true } });
   project.unshift(projectHeader);
-  
+
   return project
 }
 

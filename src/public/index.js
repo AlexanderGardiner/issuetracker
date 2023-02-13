@@ -10,6 +10,18 @@ fetch("/getProjectNames", {
     .then(response => response.json())
     .then(data => displayProjectNames(data));
 
+fetch("/checkLoggedIn", {
+  method: 'GET',
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'access-control-allow-origin': '*'
+  }
+  
+})
+.then(response => response.json())
+.then(username => document.getElementById("username").innerHTML = username.Username)
+
 // Display projects in a list
 function displayProjectNames(projectNames) {
   if (projectNames.hasOwnProperty('redirect')) {

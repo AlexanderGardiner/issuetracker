@@ -106,3 +106,18 @@ img {
 
     height: max-content;
 }
+
+.userAuthentication {
+	right: 1%;
+	top: 1%;
+	position: absolute;
+  display: inline-block;
+}
+
+#username {
+  display: inline-block;
+}
+
+#logoutButton {
+  display: inline-block;
+}

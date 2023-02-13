@@ -133,7 +133,7 @@ class table {
         this.cellChildren[0][i].appendChild(document.createElement("input"));
         this.cellChildren[0][i].children[2].type = "Checkbox";
         
-      }
+      } 
     }
   }
 
@@ -352,6 +352,7 @@ class table {
         }
 
       }
+      
       this.cellChildren[i][j].classList.add("tableCellChild");
       this.cells[i][j].classList.add("tableCell");
 
