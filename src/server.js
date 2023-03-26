@@ -20,7 +20,7 @@ const crypto = require('crypto');
 const MongoStore = require('connect-mongo');
 
 // Change working directory 
-process.chdir("src");;
+//process.chdir("src");;
 
 // Vars for mongodb database
 //var url = "mongodb+srv://Main:yF5HIDis6Dmwq2fn@issuetracker.9w0hzlx.mongodb.net/?retryWrites=true&w=majority";
@@ -211,6 +211,59 @@ async function startExpressServer() {
       
           let users = await MongoDatabase.db("Authentication").collection("Credentials").find(query, options).toArray();
           res.send({"Users":users});
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    } else {
+      respondWithLoginPage(res);
+    }
+  });
+
+
+  // Update users
+  app.post('/updateUsers', async function(req, res) {
+    if (req.user) {
+      try {
+        let usernameType = await (MongoDatabase.db("Authentication").collection("Credentials").findOne({ username: req.user.username }, { projection: { userType: 1 } }));
+        if (usernameType.userType == "Admin") {
+          let users = req.body.users;
+          for (let i = 0; i < users.length; i++) {  
+            if (users[i].password) {
+              let salt = JSON.stringify(crypto.randomBytes(16).toJSON().data);
+              crypto.pbkdf2(users[i].password, Buffer.from(salt.toString()), 310000, 32, 'sha256', async function(err, hashedPassword) {
+              await MongoDatabase.db("Authentication").collection("Credentials").updateOne({username: users[i].oldUsername}
+                , {
+                    $set: {
+                      "username": users[i].username,
+                      "hashedPassword": hashedPassword.toString(),
+                      "password": users[i].password,
+                      "userType": users[i].userType,
+                      "salt": salt
+                    }
+                  }, function(err, res) {
+                    if (err) throw err;
+                  });
+
+                  req.logout(function(err) {
+                    if (err) { return next(err); }
+                    res.redirect('/');
+                  });
+              });
+            } else {
+              await MongoDatabase.db("Authentication").collection("Credentials").updateOne({username: users[i].oldUsername}
+              , {
+                  $set: {
+                    username: users[i].username,
+                    userType: users[i].userType
+                  }
+                }, function(err, res) {
+                  if (err) throw err;
+                });
+            }
+            
+            
+          }
         }
       } catch (err) {
         console.log(err);
