@@ -345,6 +345,7 @@ async function startExpressServer() {
   // Get project data from schema and from database
   app.post('/getProject', async function(req, res) {
     try {
+      console.time("updateProject");
       if (req.user) {
         console.log("Getting Project: " + req.body.projectName);
         let schemaFile = JSON.parse(fs.readFileSync("schema.json", 'utf8'));
@@ -385,7 +386,7 @@ async function startExpressServer() {
           project = await getProject(req.body.projectName, { projectTimeEditedExists: { $exists: false } });
         }
 
-        
+        console.timeEnd("updateProject");
         res.send(JSON.stringify({
           "project": project,
           "schema": schema,
