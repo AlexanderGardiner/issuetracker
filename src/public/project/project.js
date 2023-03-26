@@ -19,6 +19,18 @@ fetch("/getProject", {
 .then(response => response.json())
 .then(data => displayProject(data));
 
+fetch("/checkLoggedIn", {
+  method: 'GET',
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'access-control-allow-origin': '*'
+  }
+  
+})
+.then(response => response.json())
+.then(username => document.getElementById("username").innerHTML = username.Username)
+
 // Define global vars
 let projectTable;
 let addRowTable;

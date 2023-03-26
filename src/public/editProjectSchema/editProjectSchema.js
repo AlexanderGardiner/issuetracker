@@ -19,6 +19,18 @@ fetch("/getProjectSchema", {
 .then(response => response.json())
 .then(data => displaySchema(data));
 
+fetch("/checkLoggedIn", {
+  method: 'GET',
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'access-control-allow-origin': '*'
+  }
+  
+})
+.then(response => response.json())
+.then(username => document.getElementById("username").innerHTML = username.Username)
+
 // Get table 
 let schemaTable;
 let projectSchema;
