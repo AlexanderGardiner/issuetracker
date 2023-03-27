@@ -229,39 +229,46 @@ async function startExpressServer() {
         if (usernameType.userType == "Admin") {
           let users = req.body.users;
           for (let i = 0; i < users.length; i++) {  
-            if (users[i].password) {
-              let salt = JSON.stringify(crypto.randomBytes(16).toJSON().data);
-              crypto.pbkdf2(users[i].password, Buffer.from(salt.toString()), 310000, 32, 'sha256', async function(err, hashedPassword) {
-              await MongoDatabase.db("Authentication").collection("Credentials").updateOne({username: users[i].oldUsername}
+            let countDuplicateUsers = await MongoDatabase.db("Authentication").collection("Credentials").countDocuments({username:users[i].username});
+            console.log(countDuplicateUsers);
+            if (countDuplicateUsers==0) {
+              if (users[i].password) {
+                let salt = JSON.stringify(crypto.randomBytes(16).toJSON().data);
+                crypto.pbkdf2(users[i].password, Buffer.from(salt.toString()), 310000, 32, 'sha256', async function(err, hashedPassword) {
+                await MongoDatabase.db("Authentication").collection("Credentials").updateOne({username: users[i].oldUsername}
+                  , {
+                      $set: {
+                        "username": users[i].username,
+                        "hashedPassword": hashedPassword.toString(),
+                        "password": users[i].password,
+                        "userType": users[i].userType,
+                        "salt": salt
+                      }
+                    }, function(err, res) {
+                      if (err) throw err;
+                    });
+  
+                    req.logout(function(err) {
+                      if (err) { return next(err); }
+                      res.redirect('/');
+                    });
+                });
+              } else {
+                await MongoDatabase.db("Authentication").collection("Credentials").updateOne({username: users[i].oldUsername}
                 , {
                     $set: {
-                      "username": users[i].username,
-                      "hashedPassword": hashedPassword.toString(),
-                      "password": users[i].password,
-                      "userType": users[i].userType,
-                      "salt": salt
+                      username: users[i].username,
+                      userType: users[i].userType
                     }
                   }, function(err, res) {
                     if (err) throw err;
                   });
-
-                  req.logout(function(err) {
-                    if (err) { return next(err); }
-                    res.redirect('/');
-                  });
-              });
+              }
+              
             } else {
-              await MongoDatabase.db("Authentication").collection("Credentials").updateOne({username: users[i].oldUsername}
-              , {
-                  $set: {
-                    username: users[i].username,
-                    userType: users[i].userType
-                  }
-                }, function(err, res) {
-                  if (err) throw err;
-                });
+              res.send("A user already exists with that username!"); 
             }
-            
+
             
           }
         }
