@@ -230,7 +230,6 @@ async function startExpressServer() {
           let users = req.body.users;
           for (let i = 0; i < users.length; i++) {  
             let countDuplicateUsers = await MongoDatabase.db("Authentication").collection("Credentials").countDocuments({username:users[i].username});
-            console.log(countDuplicateUsers);
             if (countDuplicateUsers==0) {
               if (users[i].password) {
                 let salt = JSON.stringify(crypto.randomBytes(16).toJSON().data);
