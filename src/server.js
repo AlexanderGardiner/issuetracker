@@ -473,9 +473,9 @@ async function startExpressServer() {
           let filter = { projectTimeEditedExists: { $exists: false } };
           for (let i = 0; i < filtersKeys.length; i++) {
             if (schema[filtersKeys[i]].type == "_id") {
-              filter[filtersKeys[i]] = { $eq: ObjectId(filters[filtersKeys[i]].toString()) };
+              filter[filtersKeys[i]] = { $eq: new ObjectId(filters[filtersKeys[i]].toString()) };
             } else if (schema[filtersKeys[i]].type == "Text" || schema[filtersKeys[i]].type == "ReadOnlyText") {
-              filter[filtersKeys[i]] = { $eq: filters[filtersKeys[i]] };
+              filter[filtersKeys[i]] = { $regex: filters[filtersKeys[i]] };
             } else if (schema[filtersKeys[i]].type == "Time") {
               if (!(filters[filtersKeys[i]].startTime == null) && !(filters[filtersKeys[i]].endTime == null)) {
                 filter[filtersKeys[i]] = { $gte: new Date(filters[filtersKeys[i]].startTime), $lt: new Date(filters[filtersKeys[i]].endTime) };
@@ -526,7 +526,7 @@ async function startExpressServer() {
       if (req.user) {
         let issueID = req.body.issueID;
         let propertyName = req.body.propertyName;
-        let fileID = (await MongoDatabase.db("IssueTracker").collection(req.body.projectName).findOne({ _id: ObjectId(issueID) }))[propertyName].fileID;
+        let fileID = (await MongoDatabase.db("IssueTracker").collection(req.body.projectName).findOne({ _id: new ObjectId(issueID) }))[propertyName].fileID;
         res.sendFile(__dirname + "/files/" + req.body.projectName + "/" + fileID);
       } else {
         respondWithLoginPage(res);
@@ -569,6 +569,7 @@ async function startExpressServer() {
 
         for (let i = 0; i < project.length; i++) {
           if (project[i]._id == "Not In Database") {
+            console.log(JSON.stringify(project[i]));
             // Send to database if new property
             delete project[i]._id;
 
@@ -765,7 +766,7 @@ async function deleteIssues(issueIDs, projectName) {
   try {
     for (let i = 0; i < issueIDs.length; i++) {
       await MongoDatabase.db("IssueTracker").collection(projectName).deleteOne({
-        _id: ObjectId(issueIDs[i])
+        _id: new ObjectId(issueIDs[i])
       });
     }
   } catch (err) {
@@ -819,7 +820,7 @@ async function editIssue(projectName, issueID, propertyName, propertyData) {
   }
   let dbo = MongoDatabase.db("IssueTracker");
   await dbo.collection(projectName).updateOne({
-    _id: ObjectId(issueID.toString())
+    _id: new ObjectId(issueID.toString())
   }, {
     $set: {
       [propertyName]: propertyData

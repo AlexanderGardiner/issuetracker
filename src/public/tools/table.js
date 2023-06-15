@@ -471,7 +471,7 @@ class table {
             }
   
           } else if (this.schemaDataTypes[j] == "Time") {
-            this.project[i - 1][this.schemaKeys[j]] = this.datetimeUTC(this.cellChildren[i][j].valueAsDate);
+            this.project[i][this.schemaKeys[j]] = this.datetimeUTC(this.cellChildren[i][j].valueAsDate);
           } else {
             // Everything else
             this.project[i][this.schemaKeys[j]] = this.cellChildren[i][j].value;
