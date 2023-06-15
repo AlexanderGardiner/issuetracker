@@ -20,7 +20,13 @@ fetch("/checkLoggedIn", {
   
 })
 .then(response => response.json())
-.then(username => document.getElementById("username").innerHTML = username.Username)
+.then(username => {
+  document.getElementById("username").innerHTML = username.Username;
+  if (!(username.UserType == "Admin")) {
+    document.getElementById("adminPanelButton").style.display = "none";
+  }
+
+});
 
 // Display projects in a list
 function displayProjectNames(projectNames) {

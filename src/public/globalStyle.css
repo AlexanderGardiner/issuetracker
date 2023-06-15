@@ -19,6 +19,13 @@
   font-size: 30px;
 }
 
+.AdminPanel {
+    left: 1%;
+    top: 1%;
+    position: absolute;
+    display: inline-block;
+}
+
 .projectButton {
     margin: 0 auto;
     margin-top: 10px;
@@ -115,6 +122,7 @@ img {
 }
 
 #username {
+    margin: 0px;
   display: inline-block;
 }
 

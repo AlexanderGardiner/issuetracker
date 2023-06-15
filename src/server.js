@@ -116,7 +116,8 @@ async function startExpressServer() {
 
   app.get('/checkLoggedIn', async function(req, res) {
     if (req.user) {
-      res.send({"Username":req.user.username});
+      let usernameType = await (MongoDatabase.db("Authentication").collection("Credentials").findOne({ username: req.user.username }, { projection: { userType: 1 } }));
+      res.send({"Username":req.user.username, "UserType":usernameType.userType});
     } else {
       res.sendStatus(401);
     }
@@ -486,11 +487,11 @@ async function startExpressServer() {
               }
 
             } else if (schema[filtersKeys[i]].type == "Multiple Choice" || schema[filtersKeys[i]].type == "Multiple Choice ReadOnly") {
-              filter[filtersKeys[i]] = { $eq: filters[filtersKeys[i]] };
+              filter[filtersKeys[i]] = { $regex: filters[filtersKeys[i]] };
             } else if (schema[filtersKeys[i]].type == "User") {
-              filter[filtersKeys[i]] = { $eq: filters[filtersKeys[i]] };
+              filter[filtersKeys[i]] = { $regex: filters[filtersKeys[i]] };
             } else if (schema[filtersKeys[i]].type == "File") {
-              filter[filtersKeys[i] + ".fileName"] = { $eq: filters[filtersKeys[i]] };
+              filter[filtersKeys[i] + ".fileName"] = { $regex: filters[filtersKeys[i]] };
             }
           }
           project = await getProject(req.body.projectName, filter);
