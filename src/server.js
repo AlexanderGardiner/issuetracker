@@ -194,16 +194,16 @@ async function startExpressServer() {
            
             for (let i=0; i<filterKeys.length; i++) {
               if (filterKeys[i] == "Username") {
-                query.username = filters["Username"];
+                query["username"] = { $regex: filters["Username"]};
               } 
   
               if (filterKeys[i] == "User Type") {
-                query.userType = filters["User Type"];
+                query["userType"] = { $regex: filters["User Type"]};
               }
             }
 
           }
-          
+          console.log(JSON.stringify(query));
       
           let options = {
             sort: {username : 1 },

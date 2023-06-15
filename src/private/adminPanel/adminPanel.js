@@ -41,6 +41,12 @@ function displayUsers(data) {
   userTable = new table(tableData, schema, true);
 }
 
+// Go to main page
+function mainPage() {
+  console.log("Redirecing to main page");
+  window.location.href = "../";
+}
+
 function filterUsers() {
   let filters = userTable.getFilters();
   userTable.table.remove();
