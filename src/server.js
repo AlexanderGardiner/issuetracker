@@ -203,7 +203,6 @@ async function startExpressServer() {
             }
 
           }
-          console.log(JSON.stringify(query));
       
           let options = {
             sort: {username : 1 },

@@ -74,7 +74,7 @@ img {
     text-align: center;
     text-decoration: none;
     font-size: 20px;
-    background-color: cornflowerblue;
+    background-color: #52B2CF;
 }
 
 .propertyButton {
@@ -106,7 +106,7 @@ img {
 #projectDiv {
     width: max-content;
     border-radius: 25px;
-    background-color: #bce4ee;
+    background-color: #9CADCE;
     margin: 0 auto;
     margin-top: 10px;
     padding: 10px 40px;
@@ -128,4 +128,36 @@ img {
 
 #logoutButton {
   display: inline-block;
+}
+
+button {
+
+    background-color: #7EC4CF;
+    border-radius: 15px;
+    padding: 10px;
+    border: none;
+}
+
+button:hover {
+    background-color: #D4AFB9;
+}
+
+body {
+    background-color: #D1CFE2;
+}
+
+textarea {
+    padding: 10px;
+    border-radius: 10px;
+}
+
+textarea:read-only {
+    padding: 10px;
+    border-radius: 10px;
+    background-color: #ffebeb;
+}
+
+input {
+    padding: 10px;
+    border-radius: 10px;
 }
