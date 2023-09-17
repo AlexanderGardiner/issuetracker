@@ -8,4 +8,3 @@
 <li>Filtering support for individual properties of issues</li>
 <h4>Demo link</h4>
 <link>https://issuetracker.alexgardiner.repl.co/</link>
-<br>
