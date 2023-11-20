@@ -34,7 +34,7 @@ var MongoDatabase;
 async function startExpressServer() {
   console.log("Starting Express Server");
   // Define port and set up static files and body parser
-  const PORT = 8080;
+  const PORT = 8001;
   app.use(bodyParser.urlencoded({
     extended: true
   }));
