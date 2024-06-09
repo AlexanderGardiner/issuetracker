@@ -2,41 +2,46 @@ let userTable;
 let schema;
 // Get users from server and send to be displayed
 fetch("/getUsers", {
-  method: 'POST',
+  method: "POST",
   headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-    'access-control-allow-origin': '*'
-  }
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    "access-control-allow-origin": "*",
+  },
 })
-  .then(response => response.json())
-  .then(data => displayUsers(data));
+  .then((response) => response.json())
+  .then((data) => displayUsers(data));
 
+// Displays user
 function displayUsers(data) {
   let users = data.Users;
   tableData = [];
   schema = {
     "Old Username": {
-      "type": "ReadOnlyText"
+      type: "ReadOnlyText",
     },
-    "Username": {
-      "type": "Text"
+    Username: {
+      type: "Text",
     },
     "User Type": {
-      "type": "Multiple Choice",
-      "options": ["User", "Admin"]
+      type: "Multiple Choice",
+      options: ["User", "Admin"],
     },
     "Change Password": {
-      "type": "Text"
-    }
+      type: "Text",
+    },
   };
 
-  console.log(users)
+  console.log(users);
 
   for (let i = 0; i < users.length; i++) {
-    tableData.push({"Old Username":users[i].username, "Username": users[i].username, "User Type": users[i].userType, "Change Password": "" })
+    tableData.push({
+      "Old Username": users[i].username,
+      Username: users[i].username,
+      "User Type": users[i].userType,
+      "Change Password": "",
+    });
   }
-
 
   userTable = new table(tableData, schema, true);
 }
@@ -50,50 +55,49 @@ function mainPage() {
 function filterUsers() {
   let filters = userTable.getFilters();
   userTable.table.remove();
-  
+
   fetch("/getUsers", {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      'access-control-allow-origin': '*'
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "access-control-allow-origin": "*",
     },
     body: JSON.stringify({
-      "filters": filters
-    })
+      filters: filters,
+    }),
   })
-  .then(response => response.json())
-  .then(data => displayUsers(data));
+    .then((response) => response.json())
+    .then((data) => displayUsers(data));
   console.log(filters);
 }
 
+// Updates users
 function updateUsers() {
   let userData = userTable.exportTable(schema);
 
   let formattedUserData = [];
-  for (let i=0; i<userData.length;i++) {
+  for (let i = 0; i < userData.length; i++) {
     formattedUserData.push({});
     formattedUserData[i].oldUsername = userData[i]["Old Username"];
     formattedUserData[i].username = userData[i].Username;
     formattedUserData[i].userType = userData[i]["User Type"];
-    if (userData[i]["Change Password"]!="") {
+    if (userData[i]["Change Password"] != "") {
       formattedUserData[i].password = userData[i]["Change Password"];
     }
-    
   }
   console.log(formattedUserData);
   let bodyData = {
-    users: formattedUserData
+    users: formattedUserData,
   };
   console.log(JSON.stringify(bodyData));
   fetch("/updateUsers", {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      'access-control-allow-origin': '*'
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "access-control-allow-origin": "*",
     },
     body: JSON.stringify(bodyData),
-  })
-  
+  });
 }

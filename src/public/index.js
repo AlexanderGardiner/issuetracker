@@ -1,39 +1,38 @@
 // Get project names and send them to load function
 fetch("/getProjectNames", {
-        method: 'GET',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'access-control-allow-origin': '*'
-        }
-    })
-    .then(response => response.json())
-    .then(data => displayProjectNames(data));
-
-fetch("/checkLoggedIn", {
-  method: 'GET',
+  method: "GET",
   headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-    'access-control-allow-origin': '*'
-  }
-  
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    "access-control-allow-origin": "*",
+  },
 })
-.then(response => response.json())
-.then(username => {
-  document.getElementById("username").innerHTML = username.Username;
-  if (!(username.UserType == "Admin")) {
-    document.getElementById("adminPanelButton").style.display = "none";
-  }
+  .then((response) => response.json())
+  .then((data) => displayProjectNames(data));
 
-});
+// Check if logged in
+fetch("/checkLoggedIn", {
+  method: "GET",
+  headers: {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    "access-control-allow-origin": "*",
+  },
+})
+  .then((response) => response.json())
+  .then((username) => {
+    document.getElementById("username").innerHTML = username.Username;
+    if (!(username.UserType == "Admin")) {
+      document.getElementById("adminPanelButton").style.display = "none";
+    }
+  });
 
 // Display projects in a list
 function displayProjectNames(projectNames) {
-  if (projectNames.hasOwnProperty('redirect')) {
-     window.location.href = "/login/login.html"
+  if (projectNames.hasOwnProperty("redirect")) {
+    window.location.href = "/login/login.html";
   }
-  console.log("Displaying Project Names")
+  console.log("Displaying Project Names");
   // Array to access created buttons
   projectButtons = [];
   deleteProjectButtons = [];
@@ -49,7 +48,7 @@ function displayProjectNames(projectNames) {
     projectButtons[i].innerHTML = projectNames[i];
     projectButtons[i].classList.add("projectSelectionButton");
     projectButtons[i].onclick = function () {
-        loadProject(projectNames[i])
+      loadProject(projectNames[i]);
     };
     buttonsDivs[i].appendChild(projectButtons[i]);
 
@@ -57,15 +56,13 @@ function displayProjectNames(projectNames) {
     deleteProjectButtons.push(document.createElement("button"));
     deleteProjectButtons[i].classList.add("deleteProjectButton");
     deleteProjectButtons[i].onclick = function () {
-        deleteProjectConfirmation(projectNames[i])
+      deleteProjectConfirmation(projectNames[i]);
     };
     deleteProjectButtons[i].innerHTML = "Delete Project";
     buttonsDivs[i].appendChild(deleteProjectButtons[i]);
-  
+
     document.getElementById("projectDiv").appendChild(buttonsDivs[i]);
-
   }
-
 }
 
 // Load selected project
@@ -77,32 +74,34 @@ function loadProject(projectName) {
 // Set page location to create project
 function createNewProject() {
   console.log("Creating New Project");
-    window.location.href = "newProject/newProject.html";
+  window.location.href = "newProject/newProject.html";
 }
 
 // Delete project with a confirmation
 function deleteProjectConfirmation(projectName) {
-  let confirmation = prompt("Are you sure? Enter " + projectName + " to confirm.");
+  let confirmation = prompt(
+    "Are you sure? Enter " + projectName + " to confirm."
+  );
   if (confirmation == projectName) {
     console.log("Deleting Project " + projectName);
     fetch("/deleteProject", {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'access-control-allow-origin': '*'
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "access-control-allow-origin": "*",
       },
       body: JSON.stringify({
-        "projectName": projectName
-      })  
+        projectName: projectName,
+      }),
     })
-    .then(response => response.text())
-    .then(data => reloadPage(data));
+      .then((response) => response.text())
+      .then((data) => reloadPage(data));
   }
 }
 
 // Reload page
 function reloadPage(data) {
   console.log("Reloading Page");
-  window.location.reload(true)
+  window.location.reload(true);
 }
