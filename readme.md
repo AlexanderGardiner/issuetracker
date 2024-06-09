@@ -11,6 +11,7 @@ This project, issuetracker, is a web-based project management software designed 
 <img src="https://img.shields.io/badge/-CSS3-1572B6?style=flat&logo=css3&logoColor=white" height="25"><!---->
 <img src="https://img.shields.io/badge/-Node.js-339933?style=flat&logo=node.js&logoColor=white" height="25"><!---->
 <img src="https://img.shields.io/badge/-Express.js-000000?style=flat&logo=express&logoColor=white" height="25"><!---->
+<img src="https://img.shields.io/badge/-MongoDB-47A248?style=flat&logo=mongodb&logoColor=white" height="25"><!---->
 
 ## Features
 
