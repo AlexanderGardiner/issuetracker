@@ -4,34 +4,35 @@ let schemaTable;
 let tableSchema;
 
 // Get the default schema and send it to be displayed
-fetch("/getDefaultSchema", {
-  method: 'GET',
+fetch("/issuetracker/getDefaultSchema", {
+  method: "GET",
   headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-    'access-control-allow-origin': '*'
-  }
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    "access-control-allow-origin": "*",
+  },
 })
-.then(response => response.json())
-.then(data => displaySchema(data));
+  .then((response) => response.json())
+  .then((data) => displaySchema(data));
 
-fetch("/checkLoggedIn", {
-  method: 'GET',
+fetch("/issuetracker/checkLoggedIn", {
+  method: "GET",
   headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-    'access-control-allow-origin': '*'
-  }
-  
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    "access-control-allow-origin": "*",
+  },
 })
-.then(response => response.json())
-.then(username => document.getElementById("username").innerHTML = username.Username)
+  .then((response) => response.json())
+  .then(
+    (username) =>
+      (document.getElementById("username").innerHTML = username.Username)
+  );
 
 // Display schema in editable table using inputs
 function displaySchema(schema) {
-
-  if (schema.hasOwnProperty('redirect')) {
-     window.location.href = "/login/login.html"
+  if (schema.hasOwnProperty("redirect")) {
+    window.location.href = "/issuetracker/login/login.html";
   }
   console.log("Displaing schema");
   // Define table for selecting schema
@@ -39,19 +40,19 @@ function displaySchema(schema) {
   schemaKeys = Object.keys(projectSchema);
   tableSchema = {
     "Name of Property": {
-      "type": "Text"
+      type: "Text",
     },
     "Type of Property": {
-      "type": "Multiple Choice",
-      "options": ["Text", "Time", "Multiple Choice", "User","File"]
+      type: "Multiple Choice",
+      options: ["Text", "Time", "Multiple Choice", "User", "File"],
     },
-    "Choices": {
-      "type": "Text"
-    }
+    Choices: {
+      type: "Text",
+    },
   };
 
   // Define vars for table and schema names
-  tableSchemaKeys = Object.keys(tableSchema)
+  tableSchemaKeys = Object.keys(tableSchema);
   let tableData = [];
 
   for (let i = 0; i < schemaKeys.length; i++) {
@@ -75,7 +76,7 @@ function displaySchema(schema) {
   }
 
   // Create table
-  schemaTable = new table(tableData, tableSchema, true)
+  schemaTable = new table(tableData, tableSchema, true);
 }
 
 // Add property to schema
@@ -84,26 +85,25 @@ function addProperty() {
   // Define table for selecting schema of new row
   newRowTableSchema = {
     "Name of Property": {
-      "type": "Text"
+      type: "Text",
     },
     "Type of Property": {
-      "type": "Multiple Choice",
-      "options": ["Text", "Time", "Multiple Choice", "User","File"]
+      type: "Multiple Choice",
+      options: ["Text", "Time", "Multiple Choice", "User", "File"],
     },
-    "Choices": {
-      "type": "Text"
-    }
+    Choices: {
+      type: "Text",
+    },
   };
-  
-  newRowTableSchemaKeys = Object.keys(newRowTableSchema)
+
+  newRowTableSchemaKeys = Object.keys(newRowTableSchema);
   blankTableSchema = {};
   for (let i = 0; i < tableSchemaKeys.length; i++) {
     blankTableSchema[tableSchemaKeys[i]] = "";
   }
 
   // Add row to the table
-  schemaTable.addRow(blankTableSchema, newRowTableSchema)
-
+  schemaTable.addRow(blankTableSchema, newRowTableSchema);
 }
 
 // Remove last property from table
@@ -114,16 +114,16 @@ function removeProperty() {
 
 function checkProjectNamesAndUploadProject() {
   // Get project names
-  fetch("/getProjectNames", {
-          method: 'GET',
-          headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json',
-              'access-control-allow-origin': '*'
-          }
-      })
-      .then(response => response.json())
-      .then(data => createProject(data));
+  fetch("/issuetracker/getProjectNames", {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "access-control-allow-origin": "*",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => createProject(data));
 }
 
 // Submit project to server to be created
@@ -131,46 +131,42 @@ function createProject(projectNames) {
   console.log("Creating project");
   let schemaData = schemaTable.exportTable(tableSchema);
   projectName = document.getElementById("projectName").value;
-  if (!(projectNames.includes(projectName))) {
+  if (!projectNames.includes(projectName)) {
     let updatedSchema = {};
-    updatedSchema._id = {"type":"_id"};
-    
+    updatedSchema._id = { type: "_id" };
+
     // Format multiple choice schema
     for (let i = 0; i < schemaData.length; i++) {
       if (schemaData[i]["Type of Property"] == "Multiple Choice") {
         updatedSchema[schemaData[i]["Name of Property"]] = {
-          "type": schemaData[i]["Type of Property"],
-          "options": schemaData[i]["Choices"].split(',')
+          type: schemaData[i]["Type of Property"],
+          options: schemaData[i]["Choices"].split(","),
         };
-        
       } else {
         updatedSchema[schemaData[i]["Name of Property"]] = {
-          "type": schemaData[i]["Type of Property"]
+          type: schemaData[i]["Type of Property"],
         };
       }
-  
     }
-  
+
     // Send new project to server
-    fetch("/createNewProject", {
-      method: 'POST',
+    fetch("/issuetracker/createNewProject", {
+      method: "POST",
       headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'access-control-allow-origin': '*'
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "access-control-allow-origin": "*",
       },
       body: JSON.stringify({
-        "projectName": projectName,
-        "schema": updatedSchema
-      })
+        projectName: projectName,
+        schema: updatedSchema,
+      }),
     })
-    .then(response => response.text())
-    .then(data => redirectToProject(data));
+      .then((response) => response.text())
+      .then((data) => redirectToProject(data));
   } else {
-    alert("Project already exists")
+    alert("Project already exists");
   }
-  
-
 }
 
 // Open project page
@@ -179,7 +175,7 @@ function redirectToProject(data) {
   window.location.href = "../project/project.html?projectName=" + projectName;
 }
 
-// Cancel creating project 
+// Cancel creating project
 function cancel() {
   console.log("Canceling project creation");
   window.location.href = "../";

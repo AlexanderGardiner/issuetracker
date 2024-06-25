@@ -1,5 +1,5 @@
 // Get project names and send them to load function
-fetch("/getProjectNames", {
+fetch("getProjectNames", {
   method: "GET",
   headers: {
     Accept: "application/json",
@@ -11,7 +11,7 @@ fetch("/getProjectNames", {
   .then((data) => displayProjectNames(data));
 
 // Check if logged in
-fetch("/checkLoggedIn", {
+fetch("checkLoggedIn", {
   method: "GET",
   headers: {
     Accept: "application/json",
@@ -30,7 +30,7 @@ fetch("/checkLoggedIn", {
 // Display projects in a list
 function displayProjectNames(projectNames) {
   if (projectNames.hasOwnProperty("redirect")) {
-    window.location.href = "/login/login.html";
+    window.location.href = "issuetracker/login/login.html";
   }
   console.log("Displaying Project Names");
   // Array to access created buttons

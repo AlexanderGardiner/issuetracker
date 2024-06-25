@@ -1,35 +1,36 @@
 // Get project to open from url
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
-const projectName = urlParams.get('projectName')
-
+const projectName = urlParams.get("projectName");
 
 // Get project from server and send to be displayed
-fetch("/getProject", {
-  method: 'POST',
+fetch("/issuetracker/getProject", {
+  method: "POST",
   headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-    'access-control-allow-origin': '*'
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    "access-control-allow-origin": "*",
   },
   body: JSON.stringify({
-    "projectName": projectName
-  })
+    projectName: projectName,
+  }),
 })
-.then(response => response.json())
-.then(data => displayProject(data));
+  .then((response) => response.json())
+  .then((data) => displayProject(data));
 
-fetch("/checkLoggedIn", {
-  method: 'GET',
+fetch("/issuetracker/checkLoggedIn", {
+  method: "GET",
   headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-    'access-control-allow-origin': '*'
-  }
-  
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    "access-control-allow-origin": "*",
+  },
 })
-.then(response => response.json())
-.then(username => document.getElementById("username").innerHTML = username.Username)
+  .then((response) => response.json())
+  .then(
+    (username) =>
+      (document.getElementById("username").innerHTML = username.Username)
+  );
 
 // Define global vars
 let projectTable;
@@ -43,13 +44,14 @@ let downloadedFileName;
 
 // Display project in editable table
 function displayProject(data) {
-  if (data.hasOwnProperty('redirect')) {
-     window.location.href = "/login/login.html"
+  if (data.hasOwnProperty("redirect")) {
+    window.location.href = "/issuetracker/login/login.html";
   }
-  
+
   console.log("Displaying project: " + projectName);
-  console.log(data)
-  document.getElementById("timeEdited").innerHTML = "Time Edited: " + new Date(data.project[0].projectTimeEdited);
+  console.log(data);
+  document.getElementById("timeEdited").innerHTML =
+    "Time Edited: " + new Date(data.project[0].projectTimeEdited);
   document.getElementById("title").innerHTML = projectName;
   project = data.project;
   schema = data.schema;
@@ -68,49 +70,45 @@ function displayProject(data) {
     } else if (schema[schemaKeys[i]].type == "Time") {
       blankData[schemaKeys[i]] = Date.now();
     } else if (schema[schemaKeys[i]].type == "Multiple Choice") {
-      blankData[schemaKeys[i]] = ""
+      blankData[schemaKeys[i]] = "";
     } else if (schema[schemaKeys[i]].type == "User") {
-      blankData[schemaKeys[i]] = ""
+      blankData[schemaKeys[i]] = "";
     } else if (schema[schemaKeys[i]].type == "File") {
-      blankData[schemaKeys[i]] = ""
+      blankData[schemaKeys[i]] = "";
     }
   }
-  
+
   addRowTable.addRow(blankData, schema, {});
-  
+
   // Create table
   projectTable = new table(project, schema, true);
-  
 }
 
 // Add issue
 function addIssue() {
   let files = {};
-  for (let i=0; i< schemaKeys.length; i++) {
+  for (let i = 0; i < schemaKeys.length; i++) {
     if (schema[schemaKeys[i]].type == "File") {
       files[i] = addRowTable.cellChildren[0][i].children[1].children[0];
     }
-    
   }
-  console.log(addRowTable.exportTable(schema))
-  projectTable.addRow(addRowTable.exportTable(schema)[0],schema, files)
-  
-
+  console.log(addRowTable.exportTable(schema));
+  projectTable.addRow(addRowTable.exportTable(schema)[0], schema, files);
 }
 
 // Remove issue
 function removeIssue(issueIndex) {
   console.log("Removing issue");
-  if (projectTable.cellChildren[issueIndex][0].value!="Not In Database") {
+  if (projectTable.cellChildren[issueIndex][0].value != "Not In Database") {
     issueIDsToDelete.push(projectTable.cellChildren[issueIndex][0].innerHTML);
-  
-    for (let i=0;i<schemaKeys.length; i++) {
-      if (schema[schemaKeys[i]].type== "File") {
-        if (projectTable.cellChildren[issueIndex][i].fileID!=undefined) {
-          prepareDeletionOfOldFile(projectTable.cellChildren[issueIndex][i].fileID);
+
+    for (let i = 0; i < schemaKeys.length; i++) {
+      if (schema[schemaKeys[i]].type == "File") {
+        if (projectTable.cellChildren[issueIndex][i].fileID != undefined) {
+          prepareDeletionOfOldFile(
+            projectTable.cellChildren[issueIndex][i].fileID
+          );
         }
-        
-  
       }
     }
     projectTable.removeRow(issueIndex);
@@ -124,48 +122,46 @@ function updateProjectData(project, filterTriggered) {
   console.log("Updating project");
   if (!filterTriggered) {
     // Post request
-    fetch("/updateProject", {
-      method: 'POST',
+    fetch("/issuetracker/updateProject", {
+      method: "POST",
       headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'access-control-allow-origin': '*'
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "access-control-allow-origin": "*",
       },
       body: JSON.stringify({
-        "projectName": projectName,
-        "project": project,
-        "issueIDsToDelete": issueIDsToDelete,
-        "projectFileIDsToDelete": projectFileIDsToDelete,
-        "schema": schema,
-        "schemaKeys": schemaKeys,
-      })
+        projectName: projectName,
+        project: project,
+        issueIDsToDelete: issueIDsToDelete,
+        projectFileIDsToDelete: projectFileIDsToDelete,
+        schema: schema,
+        schemaKeys: schemaKeys,
+      }),
     })
-    .then((response) => response.text())
-    .then((data) => reloadProject());
+      .then((response) => response.text())
+      .then((data) => reloadProject());
   } else {
-    console.log("Test")
+    console.log("Test");
     // Post request
-    fetch("/updateProject", {
-      method: 'POST',
+    fetch("/issuetracker/updateProject", {
+      method: "POST",
       headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'access-control-allow-origin': '*'
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "access-control-allow-origin": "*",
       },
       body: JSON.stringify({
-        "projectName": projectName,
-        "project": project,
-        "issueIDsToDelete": issueIDsToDelete,
-        "projectFileIDsToDelete": projectFileIDsToDelete,
-        "schema": schema,
-        "schemaKeys": schemaKeys,
-      })
+        projectName: projectName,
+        project: project,
+        issueIDsToDelete: issueIDsToDelete,
+        projectFileIDsToDelete: projectFileIDsToDelete,
+        schema: schema,
+        schemaKeys: schemaKeys,
+      }),
     })
-    .then((response) => response.text())
-    .then((data) => filterProject());
+      .then((response) => response.text())
+      .then((data) => filterProject());
   }
-  
-
 }
 
 // Update project files
@@ -175,27 +171,33 @@ function updateProject(filterTriggered) {
   let files = projectTable.files;
   let fileNames = projectTable.fileNames;
   var fd = new FormData();
-  for (let i=0;i<files.length;i++) {
-    fd.append((fileNames[i]+i.toString()), files[i],(fileNames[i]+i.toString()));
+  for (let i = 0; i < files.length; i++) {
+    fd.append(
+      fileNames[i] + i.toString(),
+      files[i],
+      fileNames[i] + i.toString()
+    );
   }
 
-  if (filterTriggered==undefined) {
+  if (filterTriggered == undefined) {
     filterTriggered = false;
   }
   console.log("Updating project files");
-  if (files.length>0) {
-    fetch("/updateProjectFiles?"+ new URLSearchParams({
-      "projectName": projectName,
-    }), {
-      method: 'POST',
-      body: fd
-    })
-    .then((response) => response.text())
-    .then((data) => updateProjectData(project,filterTriggered));
-    
+  if (files.length > 0) {
+    fetch(
+      "/issuetracker/updateProjectFiles?" +
+        new URLSearchParams({
+          projectName: projectName,
+        }),
+      {
+        method: "POST",
+        body: fd,
+      }
+    )
+      .then((response) => response.text())
+      .then((data) => updateProjectData(project, filterTriggered));
   } else {
-    updateProjectData(project,filterTriggered);
-    
+    updateProjectData(project, filterTriggered);
   }
 }
 
@@ -203,28 +205,27 @@ function prepareDeletionOfOldFile(fileID) {
   projectFileIDsToDelete.push(fileID);
 }
 // Get file from server
-function requestFile(fileName,issueID, propertyName) {
+function requestFile(fileName, issueID, propertyName) {
   console.log("Reqeusting file");
   downloadedFileName = fileName;
 
   // Post request
-  fetch("/getProjectFile", {
-    method: 'POST',
+  fetch("/issuetracker/getProjectFile", {
+    method: "POST",
     headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      'access-control-allow-origin': '*'
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "access-control-allow-origin": "*",
     },
     body: JSON.stringify({
-      "projectName": projectName,
-      "fileName": fileName,
-      "issueID": issueID,
-      "propertyName": propertyName
-    })
+      projectName: projectName,
+      fileName: fileName,
+      issueID: issueID,
+      propertyName: propertyName,
+    }),
   })
-  .then(response => response.blob())
-  .then(data => downloadFile(data));
-  
+    .then((response) => response.blob())
+    .then((data) => downloadFile(data));
 }
 
 // Create download link and click
@@ -236,17 +237,17 @@ function downloadFile(blob) {
   const blobUrl = window.URL.createObjectURL(newBlob);
 
   // Create link
-  const link = document.createElement('a');
+  const link = document.createElement("a");
   link.href = blobUrl;
-  link.setAttribute("download",downloadedFileName);
+  link.setAttribute("download", downloadedFileName);
   document.body.appendChild(link);
 
   // Click link
   link.dispatchEvent(
-    new MouseEvent('click', { 
-      bubbles: true, 
-      cancelable: true, 
-      view: window 
+    new MouseEvent("click", {
+      bubbles: true,
+      cancelable: true,
+      view: window,
     })
   );
 
@@ -265,49 +266,46 @@ function filterProjectUpdate() {
 }
 
 function filterProject() {
-  
   let filters = projectTable.getFilters();
-  
+
   addRowTable.table.remove();
   projectTable.table.remove();
-  
-  
+
   // Get project from server and send to be displayed
-  fetch("/getProject", {
-    method: 'POST',
+  fetch("/issuetracker/getProject", {
+    method: "POST",
     headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      'access-control-allow-origin': '*'
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "access-control-allow-origin": "*",
     },
     body: JSON.stringify({
-      "projectName": projectName,
-      "filters": filters
-    })
+      projectName: projectName,
+      filters: filters,
+    }),
   })
-  .then(response => response.json())
-  .then(data => displayProject(data));
-  
+    .then((response) => response.json())
+    .then((data) => displayProject(data));
 }
 
 function reloadProject() {
   addRowTable.table.remove();
   projectTable.table.remove();
-  
+
   // Get project from server and send to be displayed
-  fetch("/getProject", {
-    method: 'POST',
+  fetch("/issuetracker/getProject", {
+    method: "POST",
     headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      'access-control-allow-origin': '*'
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "access-control-allow-origin": "*",
     },
     body: JSON.stringify({
-      "projectName": projectName
-    })
+      projectName: projectName,
+    }),
   })
-  .then(response => response.json())
-  .then(data => displayProject(data));
+    .then((response) => response.json())
+    .then((data) => displayProject(data));
 }
 
 // Reload page
@@ -319,7 +317,8 @@ function reloadPage(data) {
 // Edit schema
 function editSchema() {
   console.log("Editing schema");
-  window.location.href = "../editProjectSchema/editProjectSchema.html?projectName=" + projectName;
+  window.location.href =
+    "../editProjectSchema/editProjectSchema.html?projectName=" + projectName;
 }
 
 // Go to main page

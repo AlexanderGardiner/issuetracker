@@ -18,7 +18,7 @@ const LocalStrategy = require("passport-local");
 const crypto = require("crypto");
 
 const MongoStore = require("connect-mongo");
-
+const path = require("path");
 // Change working directory
 //process.chdir("src");;
 
@@ -113,11 +113,15 @@ async function startExpressServer() {
   });
 
   app.use((req, res, next) => {
+    console.log(req.path);
     if (req.user) {
       next();
     } else {
-      if (req.path != "/login/login.html" && req.path != "/login/password") {
-        res.redirect("/login/login.html");
+      if (
+        req.path != "/issuetracker/login/login.html" &&
+        req.path != "/issuetracker/login/password"
+      ) {
+        res.redirect("/issuetracker/login/login.html");
       } else {
         next();
       }
@@ -129,25 +133,25 @@ async function startExpressServer() {
 
   // Setup login page
   app.post(
-    "/login/password",
+    "/issuetracker/login/password",
     passport.authenticate("local", {
-      successRedirect: "/",
-      failureRedirect: "/login/login.html",
+      successRedirect: "/issuetracker",
+      failureRedirect: "issuetracker/login/login.html",
     })
   );
 
   // Setup logout page
-  app.get("/logout", function (req, res, next) {
+  app.get("/issuetracker/logout", function (req, res, next) {
     req.logout(function (err) {
       if (err) {
         return next(err);
       }
-      res.redirect("/");
+      res.redirect("/issuetracker");
     });
   });
 
   // Check if logged in
-  app.get("/checkLoggedIn", async function (req, res) {
+  app.get("/issuetracker/checkLoggedIn", async function (req, res) {
     if (req.user) {
       let usernameType = await MongoDatabase.db("Authentication")
         .collection("Credentials")
@@ -165,7 +169,7 @@ async function startExpressServer() {
   });
 
   // Get the admin panel page
-  app.get("/adminPanel.html", async function (req, res) {
+  app.get("/issuetracker/adminPanel.html", async function (req, res) {
     if (req.user) {
       try {
         let usernameType = await MongoDatabase.db("Authentication")
@@ -177,18 +181,18 @@ async function startExpressServer() {
         if (usernameType.userType == "Admin") {
           res.sendFile(__dirname + "/private/adminPanel/adminPanel.html");
         } else {
-          res.redirect("/login/login.html");
+          res.redirect("/issuetracker/login/login.html");
         }
       } catch (err) {
         console.log(err);
       }
     } else {
-      res.redirect("/login/login.html");
+      res.redirect("/issuetracker/login/login.html");
     }
   });
 
   // Get the admin panel js
-  app.get("/adminPanel.js", async function (req, res) {
+  app.get("/issuetracker/adminPanel.js", async function (req, res) {
     if (req.user) {
       try {
         let usernameType = await MongoDatabase.db("Authentication")
@@ -200,18 +204,18 @@ async function startExpressServer() {
         if (usernameType.userType == "Admin") {
           res.sendFile(__dirname + "/private/adminPanel/adminPanel.js");
         } else {
-          res.redirect("/login/login.html");
+          res.redirect("/issuetracker/login/login.html");
         }
       } catch (err) {
         console.log(err);
       }
     } else {
-      res.redirect("/login/login.html");
+      res.redirect("/issuetracker/login/login.html");
     }
   });
 
   // Get default schema
-  app.get("/getDefaultSchema", function (req, res) {
+  app.get("/issuetracker/getDefaultSchema", function (req, res) {
     if (req.user) {
       try {
         let schemaFile = JSON.parse(fs.readFileSync("schema.json", "utf8"));
@@ -225,7 +229,7 @@ async function startExpressServer() {
   });
 
   // Get users
-  app.post("/getUsers", async function (req, res) {
+  app.post("/issuetracker/getUsers", async function (req, res) {
     if (req.user) {
       try {
         let usernameType = await MongoDatabase.db("Authentication")
@@ -271,7 +275,7 @@ async function startExpressServer() {
   });
 
   // Update users
-  app.post("/updateUsers", async function (req, res) {
+  app.post("/issuetracker/updateUsers", async function (req, res) {
     if (req.user) {
       try {
         let usernameType = await MongoDatabase.db("Authentication")
@@ -352,7 +356,7 @@ async function startExpressServer() {
   });
 
   // Get schema of project
-  app.post("/getProjectSchema", function (req, res) {
+  app.post("/issuetracker/getProjectSchema", function (req, res) {
     try {
       if (req.user) {
         let projectName = String(req.body.projectName);
@@ -382,7 +386,7 @@ async function startExpressServer() {
   });
 
   // Edit schema of project
-  app.post("/editProjectSchema", async function (req, res) {
+  app.post("/issuetracker/editProjectSchema", async function (req, res) {
     try {
       if (req.user) {
         // Define vars
@@ -529,7 +533,7 @@ async function startExpressServer() {
   });
 
   // Get list of project names
-  app.get("/getProjectNames", function (req, res) {
+  app.get("/issuetracker/getProjectNames", function (req, res) {
     if (req.user) {
       getProjectNames().then((value) => {
         res.send(value);
@@ -540,7 +544,7 @@ async function startExpressServer() {
   });
 
   // Create new project in schema and in database
-  app.post("/createNewProject", function (req, res) {
+  app.post("/issuetracker/createNewProject", function (req, res) {
     try {
       if (req.user) {
         // Set updated time and set in database
@@ -567,7 +571,7 @@ async function startExpressServer() {
   });
 
   // Get project data from schema and from database
-  app.post("/getProject", async function (req, res) {
+  app.post("/issuetracker/getProject", async function (req, res) {
     try {
       console.time("updateProject");
       if (req.user) {
@@ -645,7 +649,7 @@ async function startExpressServer() {
   });
 
   // Get project data from schema and from database
-  app.post("/getProjectFile", async function (req, res) {
+  app.post("/issuetracker/getProjectFile", async function (req, res) {
     try {
       if (req.user) {
         let issueID = req.body.issueID;
@@ -670,7 +674,7 @@ async function startExpressServer() {
   });
 
   // Update project issues
-  app.post("/updateProject", async function (req, res) {
+  app.post("/issuetracker/updateProject", async function (req, res) {
     try {
       if (req.user) {
         // Vars
@@ -826,7 +830,7 @@ async function startExpressServer() {
   });
 
   // Update project files
-  app.post("/updateProjectFiles", async function (req, res) {
+  app.post("/issuetracker/updateProjectFiles", async function (req, res) {
     try {
       if (req.user) {
         // Vars
@@ -858,7 +862,7 @@ async function startExpressServer() {
   });
 
   // Delete project files
-  app.post("/deleteProjectFiles", async function (req, res) {
+  app.post("/issuetracker/deleteProjectFiles", async function (req, res) {
     try {
       if (req.user) {
         let files = req.files;
@@ -883,7 +887,7 @@ async function startExpressServer() {
   });
 
   // Delete project
-  app.post("/deleteProject", async function (req, res) {
+  app.post("/issuetracker/deleteProject", async function (req, res) {
     try {
       if (req.user) {
         await deleteProject(req.body.projectName);

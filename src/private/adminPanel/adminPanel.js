@@ -1,7 +1,7 @@
 let userTable;
 let schema;
 // Get users from server and send to be displayed
-fetch("/getUsers", {
+fetch("/issuetracker/getUsers", {
   method: "POST",
   headers: {
     Accept: "application/json",
@@ -49,14 +49,14 @@ function displayUsers(data) {
 // Go to main page
 function mainPage() {
   console.log("Redirecing to main page");
-  window.location.href = "../";
+  window.location.href = "/issuetracker";
 }
 
 function filterUsers() {
   let filters = userTable.getFilters();
   userTable.table.remove();
 
-  fetch("/getUsers", {
+  fetch("/issuetracker/getUsers", {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -91,7 +91,7 @@ function updateUsers() {
     users: formattedUserData,
   };
   console.log(JSON.stringify(bodyData));
-  fetch("/updateUsers", {
+  fetch("/issuetracker/updateUsers", {
     method: "POST",
     headers: {
       Accept: "application/json",
