@@ -125,7 +125,7 @@ async function startExpressServer() {
   });
 
   // Setup static pages
-  app.use(express.static(__dirname + "/public"));
+  app.use("/issuetracker", express.static(path.join(__dirname, "public")));
 
   // Setup login page
   app.post(
